@@ -27,8 +27,6 @@ TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 
 
-MEDIA_ROOT = '/home/jeppe/public_html/DepartureTimes/DepartureTimes/static/'
-MEDIA_URL = '/static/'
 
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
