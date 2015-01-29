@@ -1,0 +1,38 @@
+
+echo "Installing Apache..."
+sudo apt-get install apache2 apache2.2-common apache2-mpm-prefork apache2-utils libexpat1 ssl-cert
+
+echo "Installing WSGI for Apache..."
+sudo apt-get install libapache2-mod-wsgi
+sudo service apache2 restart
+
+echo "Installing Django..."
+sudo apt-get install python-django
+
+echo "Installing RabbitMQ..."
+sudo apt-get install rabbitmq-server
+
+
+# Setup web application
+
+
+
+mkdir  -p ~/public_html/
+cd ~/public_html/
+
+
+sudo echo "
+<VirtualHost *:80>
+        ServerName departuretimes.dk
+        ServerAlias www.departuretimes.dk
+        WSGIScriptAlias / /home/jeppe/public_html/DepartureTimes/DepartureTimes/wsgi.py
+	Alias /static/ /home/username/public_html/DepartureTimes/DepartureTimes/static/
+        <Location \"/static/\">
+            Options -Indexes
+        </Location>
+</VirtualHost>" > /etc/apache2/sites-available/DepartureTimes
+
+# Enabel the virtual host and restart apache
+sudo a2ensite departuretimes.dk
+sudo /etc/init.d/apache2 reload
+

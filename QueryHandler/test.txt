@@ -1,0 +1,10 @@
+
+<VirtualHost *:80>
+        ServerName departuretimes.dk
+        ServerAlias www.departuretimes.dk
+        WSGIScriptAlias / /home/jeppe/public_html/DepartureTimes/DepartureTimes/wsgi.py
+receive.py Alias /static/ /home/username/public_html/DepartureTimes/DepartureTimes/static/
+        <Location "/static/">
+            Options -Indexes
+        </Location>
+</VirtualHost>
