@@ -9,18 +9,30 @@ def make_meta(lst, data_type):
     meta['data'] = lst
     return meta
 
+def make_meta_for_departures(station_id, lst, data_type):
+    meta = make_meta(lst, data_type)
+    meta['Uic'] = station_id
+    return meta
 
-def send_station_list_to_storage(stations):
+
+def send_stations_to_storage(stations):
     send_to_storage(
         make_meta(
             stations, 
             "stations"))
 
-def send_departures_to_storage(departures):
+def send_departures_to_storage(station_id, departures):
     send_to_storage(
-        make_meta(
+        make_meta_for_departures(
+            station_id,
             departures, 
             "departures"))
+
+def send_cities_to_storage(cities):
+    send_to_storage(
+        make_meta(
+            cities, 
+            "cities"))
 
 
 

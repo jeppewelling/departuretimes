@@ -5,6 +5,10 @@ import json
 import urllib
 import datetime
 import rmq_send
+import calendar
+
+from city_location_import import import_cities_from_csv
+
 from dsb_parse import parse_departure_list
 
 dsb_queue_url = "http://traindata.dsb.dk/stationdeparture/opendataprotocol.svc/Queue()?$format=json&$filter="
@@ -59,7 +63,8 @@ def strip_unused_fields_and_update_scheduleddeparture(departure, departure_time)
              
              # A calculated departure time (considers delay and
              # unifies regional trains with s-trains)
-             'DepartureTime' : departure_time,
+             # Convert DepartureTime to Unix time stamp
+             'DepartureTime' : calendar.timegm(departure_time.utctimetuple()),
              
              # S-tog
              'Direction' : departure['Direction'] }
@@ -90,25 +95,37 @@ def unify_departure(departure):
 #  UIC (station id)
 #  Name
 # () -> list of { Country, UIC, Name}
-def import_list_of_stations():
+def import_stations():
     raw_json = import_json(dsb_stations_url)
     lst = raw_json['d']
     return map(lambda x: 
-               { "country" : x['CountryName'], 
-                 "uic" : x['UIC'],
-                 "name" : x['Name'] }, lst)
+               { "Country" : x['CountryName'], 
+                 "Uic" : x['UIC'],
+                 "Name" : x['Name'] }, lst)
 
 
-
+# see more at:
+# http://www.dsb.dk/dsb-labs/webservice-stationsafgange/
 if __name__ == "__main__":
-    station_list = import_list_of_stations()
-    departures = import_departures_from_station("8600626")
+    city_location_data = "data/GeoLiteCity-Location.csv"    
+    stations = import_stations()
+    # departures = import_departures_from_station("8600626")
+    cities = import_cities_from_csv(city_location_data)
+    print len(cities)
 
-    print station_list
-    print "------------------------------------"
-    print departures
-    
-    rmq_send.send_to_storage(station_list)
+    rmq_send.send_stations_to_storage(stations)
+    rmq_send.send_cities_to_storage(cities)
+
+    i = 0
+    for station in stations:
+        if i == 5: break
+        i = i + 1
+        print "Departures from: %s" % station
+        rmq_send.send_departures_to_storage(
+            station['Uic'],
+            import_departures_from_station(
+                station['Uic']))
+
 
 
     
