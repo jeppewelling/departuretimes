@@ -110,6 +110,10 @@ Technical choices and architecture
    - fully automated deployment,
    - services should be run as daemons or something smarter than
      running inside a screen session.
+   - Interaction with the services after they are started.
+     Currently the services live their own life after they have been
+     started and basically the only way to stop them again is to kill
+     the processes.
  
 
  - What could be done differently
@@ -131,4 +135,5 @@ Link to resume or public profile
 
 
 Link to hosted application 
+
 http://89.221.166.70/
