@@ -9,7 +9,6 @@
 #   departures from those stations
 import pika
 import json
-import query
 from DepartureTimes.communication.rpc_server import RpcServer
 
 queue_name = 'storage_query'

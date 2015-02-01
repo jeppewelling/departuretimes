@@ -1,6 +1,5 @@
 from multiprocessing import Pool
 import import_service
-import read
 import query_service
 from data_store import DataStore
 
