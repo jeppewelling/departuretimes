@@ -1,74 +1,58 @@
 import pika
 import json
 
-queue_name = "train_departures"
+queue_name = "storage_data_import"
 
-stations_index = {}
-cities_index = {}
-
-
-def remove_end_word(string, endword):
-    if string.endswith(endword):
-        return string[:-len(endword)]
-    return string
-    
-
-def strip_from_city_name(city_name):
-    city_name = remove_end_word(city_name, " Central")
-    city_name = remove_end_word(city_name, "C")
-    return city_name.strip()
-
-def index_stations(stations):
-    stations_index.clear()
-    for s in stations:
-        stations_index[s['Uic']] = s
-
-
-def index_cities(cities):
-    cities_index.clear()
-    for c in cities:
-        name = strip_from_city_name(c['Name'])
-        cities_index[name] = c
-
-    
-
+store = None
 
 # Thanks to:
 # http://www.rabbitmq.com/tutorials/tutorial-one-python.html
-def receive_imports():
+def listen_for_imports(store_):
+    global store
+    store = store_
     connection = pika.BlockingConnection(pika.ConnectionParameters(
         host='localhost'))
     channel = connection.channel()
     
     channel.queue_declare(queue=queue_name)
     
-    print ' [*] Waiting for messages. To exit press CTRL+C'
+    print ' [*] Waiting for messages on queue: %r' % (queue_name)
     
     def callback(ch, method, properties, body):
         raw = json.loads(body)
         data_type = raw['type']
         data = raw['data']
         count = len(data)
+        print " [x] Received %r %r" % (data_type, count)
+        print "The data_store for imports: %r " % (store)
 
-        if data_type == "stations":
-            index_stations(data)
+        if data_type == u'stations':
+            print "Storing stations"
+            store.index_stations(data)
+            store.get_stations()
 
-        if data_type == "cities":
-            index_cities(data)
+        if data_type == u'cities':
+            print "Storing cities"
+            store.index_cities(data)
 
-        if data_type == "departures":
+
+        if data_type == u'departures':
+            print "Storing departures"
+
             departures_from = raw['Uic']
-            city = strip_from_city_name(stations_index[departures_from]['Name'])
-            loc = cities_index[city]
-            lat = loc['lat']
-            lon = loc['lon']
+            store.add_to_departures_index(departures_from, data)
+
+            # temp printing
+            import data_store
+            city = data_store.strip_from_city_name(store.stations_index[departures_from]['Name'])
+            loc = store.cities_index[city]
+            lat = loc['Lat']
+            lon = loc['Lon']
             print " [x] Received %r %r %r at location: %r:%r" % (data_type, 
                                                                  count, 
                                                                  city, 
                                                                  lat,
                                                                  lon)
-        else:
-            print " [x] Received %r %r" % (data_type, count)
         
     channel.basic_consume(callback,
                           queue=queue_name,
@@ -77,4 +61,5 @@ def receive_imports():
     channel.start_consuming()
 
 if __name__ == "__main__":
-    receive_imports()
+    from data_store import DataStore
+    listen_for_imports(DataStore())

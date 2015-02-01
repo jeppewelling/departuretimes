@@ -1,7 +1,7 @@
 import pika
 import json
 
-queue_name = "train_departures"
+queue_name = "storage_data_import"
 
 def make_meta(lst, data_type):
     meta = {}

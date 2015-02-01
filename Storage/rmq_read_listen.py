@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import pika
 import json
 
@@ -28,8 +27,6 @@ def on_request(ch, method, props, body):
     ch.basic_ack(delivery_tag = method.delivery_tag)
 
 
-
-
 def look_up(request):
     lat = request['lat']
     lon = request['lon']
@@ -39,7 +36,3 @@ def look_up(request):
     res['request'] = { 'lat' : lat, 'lon' : lon}
     res['result'] = 'Service is not available yet...'
     return json.dumps(res)
-
-
-if __name__ == "__main__":
-    listen_for_webservice_requests()

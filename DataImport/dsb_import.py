@@ -116,15 +116,16 @@ if __name__ == "__main__":
     rmq_send.send_stations_to_storage(stations)
     rmq_send.send_cities_to_storage(cities)
 
-    i = 0
-    for station in stations:
-        if i == 5: break
-        i = i + 1
-        print "Departures from: %s" % station
-        rmq_send.send_departures_to_storage(
-            station['Uic'],
-            import_departures_from_station(
-                station['Uic']))
+    # print stations
+    # i = 0
+    # for station in stations:
+    #     if i == 5: break
+    #     i = i + 1
+    #     print "Departures from: %s" % station
+    #     rmq_send.send_departures_to_storage(
+    #         station['Uic'],
+    #         import_departures_from_station(
+    #             station['Uic']))
 
 
 

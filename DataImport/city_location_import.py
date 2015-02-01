@@ -18,8 +18,8 @@ def import_cities_from_csv(csv_path):
 
             city = {}
             city['Name'] = row[3].decode('latin-1').encode('utf-8')
-            city['lat'] = row[5].decode('latin-1')
-            city['lon'] = row[6].decode('latin-1')
+            city['Lat'] = row[5].decode('latin-1')
+            city['Lon'] = row[6].decode('latin-1')
             cities.append(city)
     return cities
 
