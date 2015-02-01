@@ -13,10 +13,10 @@ def send_stations_to_storage(stations):
     print_message("stations")
 
 
-def send_departures_to_storage(station_id, departures):
+def send_departures_to_storage(station, departures):
     send_to_storage(
         make_meta_for_departures(
-            station_id,
+            station,
             departures, 
             "departures"))
     print_message("departures")
@@ -37,9 +37,10 @@ def make_meta(lst, data_type):
     return meta
 
 
-def make_meta_for_departures(station_id, lst, data_type):
+def make_meta_for_departures(station, lst, data_type):
     meta = make_meta(lst, data_type)
-    meta['Uic'] = station_id
+    meta['FromStation'] = station
+    print "meta: %r" % meta
     return meta
 
 

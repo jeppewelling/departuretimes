@@ -18,6 +18,9 @@ def import_cities_from_csv(csv_path):
 
             city = {}
             city['Name'] = row[3].decode('latin-1').encode('utf-8')
+            if "benhavn" in city['Name']:
+                print city['Name']
+
             city['Lat'] = row[5].decode('latin-1')
             city['Lon'] = row[6].decode('latin-1')
             cities.append(city)

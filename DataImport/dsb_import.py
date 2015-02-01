@@ -101,7 +101,7 @@ def import_stations():
     return map(lambda x: 
                { "Country" : x['CountryName'], 
                  "Uic" : x['UIC'],
-                 "Name" : x['Name'] }, lst)
+                 "Name" : x['Name'].encode("utf-8") }, lst)
 
 
 # see more at:
@@ -121,17 +121,17 @@ if __name__ == "__main__":
     rmq_send.send_stations_to_storage(stations)
     rmq_send.send_cities_to_storage(cities)
 
-    # print stations
-    # i = 0
-    # for station in stations:
-    #     if i == 5: break
-    #     i = i + 1
-    #     print "Departures from: %s" % station
-    #     rmq_send.send_departures_to_storage(
-    #         station['Uic'],
-    #         import_departures_from_station(
-    #             station['Uic']))
+    for station in stations:
+        name = station['Name']
+        #print "Station: %r" % name
+        if name == "Hadsten" \
+        or name == "København H":
+        
+            print "Departures from: %s" % station
+            rmq_send.send_departures_to_storage(
+                station,
+                import_departures_from_station(
+                    station['Uic']))
 
 
 
-    

@@ -1,12 +1,12 @@
+import json
 from django.shortcuts import render
 from django.http import HttpResponse
-import json
-
 from send_query import send_to_query_handler
     
 
-def query(request, lat, lon):
-    result = send_to_query_handler(lat, lon)
+def query(request, lat, lon, radius):
+    result = send_to_query_handler(lat, lon, radius)
+
     # response...
     return HttpResponse(
         json.dumps(result), 
@@ -14,6 +14,5 @@ def query(request, lat, lon):
 
 
 def index(request):
-    return HttpResponse("Hello, world. You're at the polls index.")
-
+    return HttpResponse("Hello world!")
 

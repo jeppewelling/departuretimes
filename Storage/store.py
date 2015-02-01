@@ -12,12 +12,10 @@ def message_handler(body):
     data = raw['data']
     count = len(data)
     print " [x] Received %r %r" % (data_type, count)
-    print "The data_store for imports: %r " % (store)
     
     if data_type == u'stations':
         print "Storing stations"
         store.index_stations(data)
-        store.get_stations()
         
     if data_type == u'cities':
         print "Storing cities"
@@ -27,18 +25,23 @@ def message_handler(body):
     if data_type == u'departures':
         print "Storing departures"
         
-        departures_from = raw['Uic']
-        store.add_to_departures_index(departures_from, data)
-        
-        # temp printing
-        import data_store
-        city = data_store.strip_from_city_name(store.stations_index[departures_from]['Name'])
-        loc = store.cities_index[city]
-        lat = loc['Lat']
-        lon = loc['Lon']
+        from_station = raw['FromStation']
+        from_station_id = from_station['Uic']
+        from_station_name = from_station['Name']
+        store.add_to_departures_index(from_station_id, data)
+
+        print "from_station: %r" % from_station
+
+        loc = store.get_location_from_station_name(from_station_name)
+        lat = -1
+        lon = -1
+        if loc != None:
+            lat = loc['Lat']
+            lon = loc['Lon']
+
         print " [x] Received %r %r %r at location: %r:%r" % (data_type, 
                                                              count, 
-                                                             city, 
+                                                             from_station_name, 
                                                              lat,
                                                              lon)
     

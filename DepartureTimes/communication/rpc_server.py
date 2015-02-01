@@ -1,8 +1,10 @@
 import pika 
 import json
 
-# A generic RPC server
+# A generic RPC server for RabbitMQ
 
+# Inspired by
+# http://www.rabbitmq.com/tutorials/tutorial-six-python.html
 class RpcServer(object):
     def __init__(self, queue_name, response_handler):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(
