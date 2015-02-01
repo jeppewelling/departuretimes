@@ -61,5 +61,6 @@ def append_from_station_name(station, departures_from_station, uic):
             "Departures" : departures_from_station }
 
 
-if __name__ == "__main__":
+def run():
     RpcServer(queue_name, handle_web_client_request)
+

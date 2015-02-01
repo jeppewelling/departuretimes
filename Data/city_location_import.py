@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
 import csv
+import download_geolocations
+
+file_path = "Data/data/GeoLiteCity_20150106/GeoLiteCity_20150106/GeoLiteCity-Location.csv"
 
 def is_DK_or_SE(row):
     return row[1] == "DK" or row[1] == "SE"
@@ -18,16 +22,24 @@ def import_cities_from_csv(csv_path):
 
             city = {}
             city['Name'] = row[3].decode('latin-1').encode('utf-8')
-            if "benhavn" in city['Name']:
-                print city['Name']
+
+            # They seriously spelled it: Kjobenhavn
+            if "Kjobenhavn" in city['Name']:
+                city['Name'] = "København"
 
             city['Lat'] = row[5].decode('latin-1')
             city['Lon'] = row[6].decode('latin-1')
+
+
             cities.append(city)
     return cities
 
 
-if __name__ == "__main__":
-    print import_cities_from_csv("data/GeoLiteCity-Location.csv")
-    
+def import_cities():
+    download_geolocations.download()
+    return import_cities_from_csv(file_path)
 
+
+if __name__ == "__main__":
+    print import_cities()
+    

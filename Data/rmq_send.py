@@ -19,7 +19,8 @@ def send_departures_to_storage(station, departures):
             station,
             departures, 
             "departures"))
-    print_message("departures")
+    print " [x] Send departures from %r to storage on queue: %r " % (station['Name'], queue_name)
+    
 
 
 def send_cities_to_storage(cities):
@@ -40,7 +41,6 @@ def make_meta(lst, data_type):
 def make_meta_for_departures(station, lst, data_type):
     meta = make_meta(lst, data_type)
     meta['FromStation'] = station
-    print "meta: %r" % meta
     return meta
 
 

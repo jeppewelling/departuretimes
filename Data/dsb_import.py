@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-
 import urllib2
 import json
 import urllib
 import datetime
 import rmq_send
 import calendar
-from city_location_import import import_cities_from_csv
+from city_location_import import import_cities
 from dsb_parse import parse_departure_list
+from time import sleep
 
 dsb_queue_url = "http://traindata.dsb.dk/stationdeparture/opendataprotocol.svc/Queue()?$format=json&$filter="
 dsb_stations_url = "http://traindata.dsb.dk/stationdeparture/opendataprotocol.svc/Station()?$format=json"
@@ -91,9 +91,6 @@ def unify_departure(departure):
 
 
 # Imports a list of stations:
-#  Country
-#  UIC (station id)
-#  Name
 # () -> list of { Country, UIC, Name}
 def import_stations():
     raw_json = import_json(dsb_stations_url)
@@ -106,15 +103,13 @@ def import_stations():
 
 # see more at:
 # http://www.dsb.dk/dsb-labs/webservice-stationsafgange/
-if __name__ == "__main__":
-    city_location_data = "DataImport/data/GeoLiteCity-Location.csv"    
-    
+def dsb_import():
     print "Importing stations from DSB..."
     stations = import_stations()
     print "Found %r stations." % (len(stations))
 
     print "Importing citites from csv file..."
-    cities = import_cities_from_csv(city_location_data)
+    cities = import_cities()
     print "Found %r cities." % (len(cities))
 
     print "Transmitting data to storage service..."
@@ -122,16 +117,17 @@ if __name__ == "__main__":
     rmq_send.send_cities_to_storage(cities)
 
     for station in stations:
-        name = station['Name']
-        #print "Station: %r" % name
-        if name == "Hadsten" \
-        or name == "København H":
+        # name = station['Name']
+        # if name == "Hadsten" \
+        # or name == "København H":
         
-            print "Departures from: %s" % station
-            rmq_send.send_departures_to_storage(
-                station,
-                import_departures_from_station(
-                    station['Uic']))
+        rmq_send.send_departures_to_storage(
+            station,
+            import_departures_from_station(
+                station['Uic']))
+
+        # Lets not ddos DSB :-)
+        sleep(2)
 
 
 
