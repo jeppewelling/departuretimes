@@ -58,7 +58,7 @@ the following technologies:
 
  I have previously worked for about 4 months with Python and Django,
  so I am no expert - and I encounter a few problems on the way,
- i.e. when I wanted to share a dictionary between two threads - but I
+ e.g. when I wanted to share a dictionary between two threads - but I
  got it working eventually.
 
  At some point I spend a few weeks playing around with RabbitMQ and I
@@ -76,6 +76,10 @@ Technical choices and architecture
     - a storage service and
     - a data import service
   
+  See diagram.pdf:
+  https://github.com/jeppewelling/departuretimes/blob/master/diagram.pdf
+
+
   These services are glued together by RabbitMQ.  I decided to have
   the components coupled together as loosely as possible so each
   component can be switched off without directly affecting the others.
