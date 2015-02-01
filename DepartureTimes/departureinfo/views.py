@@ -14,5 +14,5 @@ def query(request, lat, lon, radius):
 
 
 def index(request):
-    return HttpResponse("Extend this URL with: /location=<latitude>,<longitude>,<radius in km>")
+    return HttpResponse("Extend this URL with: /location=&lt;latitude&gt;,&lt;longitude&gt;,&lt;radius in km&gt;")
 
