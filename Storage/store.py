@@ -24,7 +24,7 @@ def message_handler(body):
 
     if data_type == u'departures':
         print "Storing departures"
-        
+
         from_station = raw['FromStation']
         from_station_id = from_station['Uic']
         from_station_name = from_station['Name']

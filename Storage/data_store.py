@@ -13,7 +13,6 @@ class DataStore(object):
         self.departures_index = manager.dict()
 
     # Return the stations with their geographical location appended
-    # TODO: optimize this
     def get_stations(self):
         out = []
         s = dict(self.stations_index)

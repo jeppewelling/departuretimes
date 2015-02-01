@@ -57,7 +57,7 @@ def add_from_name_to_departures(local_stations, departures):
 
 def append_from_station_name(station, departures_from_station, uic):
     return {"Uic": uic,
-            "DepartureName" : station['Name'],
+            "StationName" : station['Name'],
             "Departures" : departures_from_station }
 
 
