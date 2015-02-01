@@ -1,11 +1,12 @@
 import json
-from communication.rpc_client import RpcClient
+from DepartureTimes.communication.rpc_client import RpcClient
 
 
 def storage_query_get_stations():
     rpc = RpcClient('storage_query')
     q = {}
     q['type'] = "get_stations"
+    print q
     return json.loads(rpc.call(json.dumps(q)))
 
     

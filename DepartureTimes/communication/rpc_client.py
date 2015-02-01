@@ -2,6 +2,7 @@ import pika
 import uuid
 import json
 
+# A generic RPC client
 
 # Using RMQ RPC:
 # http://www.rabbitmq.com/tutorials/tutorial-six-python.html

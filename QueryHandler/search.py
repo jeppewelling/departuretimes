@@ -78,6 +78,6 @@ if __name__ == "__main__":
 
     from read_from_storage import storage_query_get_stations
     stations = storage_query_get_stations()
-    #print stations
+    print stations
 
     print get_stations_near(56.1500,10.2167, 20, stations)

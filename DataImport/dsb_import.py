@@ -6,13 +6,12 @@ import urllib
 import datetime
 import rmq_send
 import calendar
-
 from city_location_import import import_cities_from_csv
-
 from dsb_parse import parse_departure_list
 
 dsb_queue_url = "http://traindata.dsb.dk/stationdeparture/opendataprotocol.svc/Queue()?$format=json&$filter="
 dsb_stations_url = "http://traindata.dsb.dk/stationdeparture/opendataprotocol.svc/Station()?$format=json"
+
 
 # Imports json from a given url.
 def import_json(url):
@@ -31,6 +30,7 @@ def add_minutes(dt, m):
     seconds = m * 60
     return dt + datetime.timedelta(seconds = seconds)
     
+
 def add_seconds(dt, s):
     return dt + datetime.timedelta(seconds = s)
 
@@ -43,7 +43,6 @@ def import_departures_from_station(station_id):
     raw_json = import_json(url)
     return unify_stog_and_regional(
         parse_departure_list(raw_json['d']))
-
 
 
 # The S-togs arrival times are given as a time and an offset,
@@ -68,6 +67,7 @@ def strip_unused_fields_and_update_scheduleddeparture(departure, departure_time)
              
              # S-tog
              'Direction' : departure['Direction'] }
+
 
 # list of departures -> unified list of departures
 def unify_departure(departure):
@@ -107,12 +107,17 @@ def import_stations():
 # see more at:
 # http://www.dsb.dk/dsb-labs/webservice-stationsafgange/
 if __name__ == "__main__":
-    city_location_data = "data/GeoLiteCity-Location.csv"    
+    city_location_data = "DataImport/data/GeoLiteCity-Location.csv"    
+    
+    print "Importing stations from DSB..."
     stations = import_stations()
-    # departures = import_departures_from_station("8600626")
-    cities = import_cities_from_csv(city_location_data)
-    print len(cities)
+    print "Found %r stations." % (len(stations))
 
+    print "Importing citites from csv file..."
+    cities = import_cities_from_csv(city_location_data)
+    print "Found %r cities." % (len(cities))
+
+    print "Transmitting data to storage service..."
     rmq_send.send_stations_to_storage(stations)
     rmq_send.send_cities_to_storage(cities)
 

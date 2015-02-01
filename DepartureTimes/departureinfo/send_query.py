@@ -1,18 +1,13 @@
-import pika
-import uuid
 import json
-from ..communication.rpc_client import RpcClient
+from communication.rpc_client import RpcClient
+
 
 queue_name = 'departureinfo_query'
 
+# Sends a query to the QueryHandler
 def send_to_query_handler(lat, lon):
     rpc = RpcClient(queue_name)
-
-    print " [x] Requesting %s %s" % (lat, lon)
-    response = rpc.call(encode_message(lat, lon))
-
-    print " [.] Got %r" % (response,)
-    return response
+    return rpc.call(encode_message(lat, lon))
 
 
 def encode_message(lat, lon):
@@ -22,6 +17,6 @@ def encode_message(lat, lon):
     return json.dumps(req)
 
 
-
-
+if __name__ == "__main__":
+    print send_to_query_handler(56.1500, 10.2167)
 
