@@ -9,7 +9,7 @@ def import_all():
             dsb_import()
         except Exception as ex:
             print "Something went wrong in the import: %r" % ex
-            print "Next import commence in %r minutes" % import_timeout_minutes
+            print "Next import commences in %r minutes" % import_timeout_minutes
 
         # Wait 5 minutes before importing again
         sleep(60 * import_timeout_minutes)
