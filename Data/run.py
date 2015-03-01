@@ -3,6 +3,9 @@ from time import sleep
 
 import_timeout_minutes = 5
 
+def run():
+    import_all()
+
 def import_all():
     while True:
         try:
@@ -16,4 +19,4 @@ def import_all():
 
 
 if __name__ == "__main__":
-    import_all()
+    run()

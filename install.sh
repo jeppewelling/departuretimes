@@ -31,7 +31,7 @@ sudo git clone https://github.com/jeppewelling/departuretimes.git
 sudo chmod 755 -R departuretimes/DepartureTimes
 cd departuretimes
 
-
+# Check if directory already exists
 sudo mkdir /etc/apache2/sites-available/ 
 sudo cp install/departuretimes.dk.conf /etc/apache2/sites-available/departuretimes.dk.conf
 
@@ -41,17 +41,20 @@ sudo service apache2 reload
 
 
 # Stup the services 
-sudo cp Storage/etc/init.d/storage_service /etc/init.d/storage_service
+cd deamon
+./make_deamons.sh
+
+sudo mv storage_service /etc/init.d/storage_service
 sudo chmod 755 /etc/init.d/storage_service
 sudo chmod 755 /srv/departuretimes/start_storage.sh
 sudo update-rc.d storage_service defaults
 
-sudo cp Query/etc/init.d/query_service /etc/init.d/query_service
+sudo mv query_service /etc/init.d/query_service
 sudo chmod 755 /etc/init.d/query_service
 sudo chmod 755 /srv/departuretimes/start_query.sh
 sudo update-rc.d query_service defaults
 
-sudo cp Data/etc/init.d/data_service /etc/init.d/data_service
+sudo mv data_service /etc/init.d/data_service
 sudo chmod 755 /etc/init.d/data_service
 sudo chmod 755 /srv/departuretimes/start_data.sh
 sudo update-rc.d data_service defaults

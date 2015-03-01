@@ -3,7 +3,7 @@ import import_service
 import query_service
 from data_store import DataStore
 
-if __name__ == '__main__':
+def run():
     data_store = DataStore()
     pool = Pool(processes=2)
     pool.apply_async(import_service.listen_for_imports, [data_store])
@@ -11,3 +11,7 @@ if __name__ == '__main__':
     
     pool.close()
     pool.join()
+    
+
+if __name__ == '__main__':
+    run()
