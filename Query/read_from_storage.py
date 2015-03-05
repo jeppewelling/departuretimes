@@ -18,6 +18,3 @@ def storage_query_get_departures(stations):
     return json.loads(rpc.call(json.dumps(q)))
     
     
-
-
-

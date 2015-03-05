@@ -1,41 +1,53 @@
 # -*- coding: utf-8 -*-
-import urllib2
-import json
-import urllib
 import datetime
 import rmq_send
 import calendar
+import urllib
+from time import sleep
 from city_location_import import import_cities
 from dsb_parse import parse_departure_list
-from time import sleep
+from json_url_import import import_json
+from DepartureTimes.communication.interrupt_handler \
+    import block_signals, exception_handler
 
-dsb_queue_url = "http://traindata.dsb.dk/stationdeparture/opendataprotocol.svc/Queue()?$format=json&$filter="
-dsb_stations_url = "http://traindata.dsb.dk/stationdeparture/opendataprotocol.svc/Station()?$format=json"
+import_timeout_minutes = 5
+
+dsb_url = "http://traindata.dsb.dk/stationdeparture/"\
+          "opendataprotocol.svc"
+
+dsb_queue_url = dsb_url + "/Queue()?$format=json&$filter="
+dsb_stations_url = dsb_url + "/Station()?$format=json"
 
 
-# Imports json from a given url.
-def import_json(url):
-    response = urllib2.urlopen(url)
-    raw_departures = response.read()
-    return json.loads(raw_departures)
+def main():
+    exception_handler(import_all)
+
+
+def import_all():
+    while True:
+        with block_signals():
+            dsb_import()
+
+            # Wait 5 minutes before importing again
+            sleep(60 * import_timeout_minutes)
 
 
 def get_station_query(station_id):
-    query_station = "(StationUic eq '"+ station_id + "')"
+    query_station = "(StationUic eq '" + station_id + "')"
     return urllib.quote_plus(query_station)
 
-    
+
 # datetime * minutes -> datetime
 def add_minutes(dt, m):
     seconds = m * 60
-    return dt + datetime.timedelta(seconds = seconds)
-    
+    return dt + datetime.timedelta(seconds=seconds)
+
 
 def add_seconds(dt, s):
-    return dt + datetime.timedelta(seconds = s)
+    return dt + datetime.timedelta(seconds=s)
 
 
-# Imports the list of departures from a given station.
+# Impors the list of departures from a given station.
 # UIC -> list of <departure info>
 def import_departures_from_station(station_id):
     q = get_station_query(station_id)
@@ -46,27 +58,29 @@ def import_departures_from_station(station_id):
 
 
 # The S-togs arrival times are given as a time and an offset,
-# We want to unify this with the Regional trains who has a 
+# We want to unify this with the Regional trains who has a
 # Scheduled departure time.
 def unify_stog_and_regional(departures):
     return map(unify_departure, departures)
 
 
-def strip_unused_fields_and_update_scheduleddeparture(departure, departure_time):
-    return { 'DestinationName' : departure['DestinationName'],
-             'DestinationId' : departure['DestinationId'],
-             
-             'Cancelled' : departure['Cancelled'],
-             'TrainType': departure['TrainType'],
-             'Track' : departure['Track'],
-             
-             # A calculated departure time (considers delay and
-             # unifies regional trains with s-trains)
-             # Convert DepartureTime to Unix time stamp
-             'DepartureTime' : calendar.timegm(departure_time.utctimetuple()),
-             
-             # S-tog
-             'Direction' : departure['Direction'] }
+def strip_unused_fields_and_update_scheduleddeparture(
+        departure,
+        departure_time):
+    return {'DestinationName': departure['DestinationName'],
+            'DestinationId': departure['DestinationId'],
+
+            'Cancelled': departure['Cancelled'],
+            'TrainType': departure['TrainType'],
+            'Track': departure['Track'],
+
+            # A calculated departure time (considers delay and
+            # unifies regional trains with s-trains) Convert
+            # DepartureTime to Unix time stamp
+            'DepartureTime': calendar.timegm(departure_time.utctimetuple()),
+
+            # S-tog
+            'Direction': departure['Direction']}
 
 
 # list of departures -> unified list of departures
@@ -75,16 +89,16 @@ def unify_departure(departure):
     # MinutesToDeparture to TimeGenerated.
     if departure['ScheduledDeparture'] == None:
         return strip_unused_fields_and_update_scheduleddeparture(
-            departure, 
+            departure,
             add_minutes(
-                departure['TimeGenerated'], 
+                departure['TimeGenerated'],
                 departure['MinutesToDeparture']))
 
     # For regional trains there is a property called DepartureDaley
     # (in seconds) to have the proper departure time, we add the delay
     # to the secheduled departure.
     return strip_unused_fields_and_update_scheduleddeparture(
-        departure,  
+        departure,
         add_seconds(
             departure['ScheduledDeparture'],
             departure['DepartureDelayInSeconds']))
@@ -95,10 +109,10 @@ def unify_departure(departure):
 def import_stations():
     raw_json = import_json(dsb_stations_url)
     lst = raw_json['d']
-    return map(lambda x: 
-               { "Country" : x['CountryName'], 
-                 "Uic" : x['UIC'],
-                 "Name" : x['Name'].encode("utf-8") }, lst)
+    return map(lambda x:
+               {"Country": x['CountryName'],
+                "Uic": x['UIC'],
+                "Name": x['Name'].encode("utf-8")}, lst)
 
 
 # see more at:
@@ -117,17 +131,11 @@ def dsb_import():
     rmq_send.send_cities_to_storage(cities)
 
     for station in stations:
-        # name = station['Name']
-        # if name == "Hadsten" \
-        # or name == "København H":
-        
-        rmq_send.send_departures_to_storage(
-            station,
-            import_departures_from_station(
-                station['Uic']))
+        with block_signals():
+            rmq_send.send_departures_to_storage(
+                station,
+                import_departures_from_station(
+                    station['Uic']))
 
         # Lets not ddos DSB :-)
         sleep(2)
-
-
-
