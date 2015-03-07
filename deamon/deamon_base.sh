@@ -1,6 +1,7 @@
 # Quick start-stop-daemon example, derived from Debian /etc/init.d/ssh
 set -e
- 
+# Thanks to:
+# http://stackoverflow.com/questions/8251933/how-can-i-log-the-stdout-of-a-process-started-by-start-stop-daemon 
 # Must be a valid filename
  
 export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
@@ -11,8 +12,9 @@ test -x $DAEMON || exit 0
 
 case "$1" in
   start)
-        echo -n "Starting daemon: "$NAME
-	start-stop-daemon  --background --start --quiet --pidfile $PIDFILE -m --exec $DAEMON -- $DAEMON_OPTS
+        echo -n "Starting daemon: $NAME logfile located at: /var/log/$NAME.log"
+	start-stop-daemon  --background --start --quiet --pidfile $PIDFILE -m \
+	    --startas /bin/bash -- -c "exec $DAEMON $DAEMON_OPTS > /var/log/$NAME.log 2>&1" 
         echo "."
 	;;
   stop)
@@ -21,9 +23,12 @@ case "$1" in
         echo "."
 	;;
   restart)
-        echo -n "Restarting daemon: "$NAME
+	echo -n "Restarting daemon: $NAME logfile located at: /var/log/$NAME.log"
 	start-stop-daemon --stop --quiet --oknodo --retry 30 --pidfile $PIDFILE
-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_OPTS
+
+
+	start-stop-daemon  --background --start --quiet --pidfile $PIDFILE -m \
+	    --startas /bin/bash -- -c "exec $DAEMON $DAEMON_OPTS > /var/log/$NAME.log 2>&1" 
 	echo "."
 	;;
   status)

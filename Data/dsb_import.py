@@ -17,8 +17,6 @@ dsb_url = "http://traindata.dsb.dk/stationdeparture/"\
 
 dsb_queue_url = dsb_url + "/Queue()?$format=json&$filter="
 dsb_stations_url = dsb_url + "/Station()?$format=json"
-
-
 def main():
     exception_handler(import_all)
 

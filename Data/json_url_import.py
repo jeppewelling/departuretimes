@@ -1,7 +1,6 @@
 import urllib2
-#import urllib
 import json
-import ssl
+
 
 # Imports json from a given url.
 def import_json(url):
@@ -17,7 +16,6 @@ def import_http_json(url):
 
 
 def import_https_json(url):
-    print url
     req = urllib2.Request(url)
     response = urllib2.urlopen(req)
     raw_output = response.read()

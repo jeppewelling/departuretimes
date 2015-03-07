@@ -37,8 +37,8 @@ def download():
         print "File already downloaded, no need to download."
         return
 
-    local_file_path = "Data/data/GeoLiteCity-Location.zip"
-    local_file_path_unzipped = "Data/data/"
+    local_file_path = "/srv/departuretimes/Data/data/GeoLiteCity-Location.zip"
+    local_file_path_unzipped = "/srv/departuretimes/Data/data/"  # 
     download_geolocation(local_file_path)
     unzip(local_file_path, local_file_path_unzipped)
 
