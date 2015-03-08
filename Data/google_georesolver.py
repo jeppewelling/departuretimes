@@ -1,8 +1,8 @@
+from time import sleep
 import json
 from os.path import isfile
 from json_url_import import import_json
 from urllib import urlencode
-import io
 
 P = u'Place'
 C = u'Country'
@@ -10,11 +10,37 @@ N = u'Name'
 L = u'Location'
 LAT = u'Lat'
 LON = u'Lon'
+M = u'Message'
 
 api_url = "https://maps.googleapis.com/maps/api/geocode/json?%s"\
           "&key=AIzaSyBW43vhEDudt_ZEaIlF7-bBKPeSNGW9D-s"
 
-places_file = "./data/places_location.json"
+places_file = "./places_location.json"
+
+
+class GoogleGeoResolver(object):
+    def __init__(self):
+        self.cached_index = {}
+
+    def fetch_place_to_location_map(self, list_of_places):
+        # list_of_places = places_to_utf8(list_of_places)
+        # First check if the locations are stored locally
+        self.index_cache = read_places(places_file)
+        self.index_cache = fillout_missing_places(list_of_places,
+                                                  self.index_cache)
+        store_places(places_file, self.index_cache)
+        return self.index_cache
+
+    def lookup_place(self, place):
+        country = place[C]
+        name = place[N]
+        if country not in self.cached_index:
+            return {}
+
+        if name not in self.cached_index[country]:
+            return {}
+
+        return self.cached_index[country][name]
 
 
 # A list of places: {Name: n, Country: c}
@@ -23,47 +49,32 @@ def main(list_of_places):
     # First check if the locations are stored locally
     index_cache = read_places(places_file)
 
-    # If the local cache is empty, fill it up
-    if not index_cache:
-        index = places_to_location_index(list_of_places)
-        # save as local cache
-        store_places(places_file, index)
-        return index
-
     updated_index = fillout_missing_places(list_of_places, index_cache)
     store_places(places_file, updated_index)
-    print updated_index
     return updated_index
 
 
-# def places_to_utf8(list_of_places):
-#     return map(lambda x:
-#                as_place(toUtf8(x[N]),
-#                         toUtf8(x[C])),
-#                list_of_places)
-
-
-# There might be places not found in the local cache
-def fillout_missing_places(list_of_places, index):
+# Georesolves the elements of the list: list_of_places that are not
+# already found in the cached index.
+#
+# Input: list of: {Name: n, Country: c},
+#
+# cached_index:
+# {country: {place: {Location: {Lat: l, Lon: o}}}}
+#
+# Output: dict of: {Country: {Name : {Location: {Lat: l, Lon: o}}}}
+def fillout_missing_places(list_of_places, cached_index):
     for p in list_of_places:
         country = toUtf8(p[C])
         name = toUtf8(p[N])
-        if country not in index:
-            index[country] = {name: location_from_place(p)}
+        if country not in cached_index:
+            cached_index[country] = {name: location_from_place(p)}
 
-        place_index = index[country]
+        place_index = cached_index[country]
         if name not in place_index:
-            index[country][name] = location_from_place(p)
+            cached_index[country][name] = location_from_place(p)
 
-    return index
-
-
-# Input: list of: {Name: n, Country: c}
-# Output: dict of: {Country: {Name : {Location: {Lat: l, Lon: o}}}}
-def places_to_location_index(places):
-    # pairs of place, location
-    pairs = map(bind_place_with_location, places)
-    return index_addresses_by_place(pairs)
+    return cached_index
 
 
 def bind_place_with_location(place):
@@ -73,7 +84,6 @@ def bind_place_with_location(place):
 
 
 def toUtf8(v):
-    print v
     return v.decode('utf8')
 
 
@@ -82,15 +92,18 @@ def location_from_place(p):
     loc = location_from_google_place_info(
         resolve_place(p[N],
                       p[C]))
-
     print "Google georesolver: Searched for: %s, found: %s" % (p, loc)
     return loc
 
 
 def resolve_place(place, country):
     """ Input: place, country. Returns the raw json from the google api. """
+
+    # Google allows for 5 request per second, 2500 requests per 24
+    # hour. The max requests per 24 hour is not checked!
+    sleep(0.2)
+
     address = "%s,%s" % (place, country)
-    print address
     enc = urlencode({'address': address})
     url = api_url % enc
     return import_json(url)
@@ -101,7 +114,7 @@ def location_from_google_place_info(place_info):
     information as a dictionary."""
     results = place_info['results']
     if not results:
-        return as_location(0, 0)
+        return as_location_not_found()
 
     location = results[0]['geometry']['location']
     return as_location(location['lat'], location['lng'])
@@ -117,8 +130,11 @@ def as_location(lat, lon):
                 LON: lon}}
 
 
+def as_location_not_found():
+    return {L: {M: "Location not available."}}
+
+
 def store_places(file_path, place_locations):
-    print place_locations
     with open(file_path, 'w') as f:
         json.dump(place_locations, f)
     f.close()
@@ -126,14 +142,15 @@ def store_places(file_path, place_locations):
 
 def read_places(file_path):
     if not isfile(file_path):
-        return []
-
+        print "No file found for place locations at: %s." % file_path
+        return {}
     try:
         with open(file_path, 'r') as f:
             addresses = json.load(f)
         f.close()
-    except ValueError:
-        return []
+    except ValueError as ex:
+        print "Unable to parse json file: %s" % ex
+        return {}
     return addresses
 
 
@@ -157,8 +174,6 @@ def index_addresses_by_place(addresses):
 
 
 # TODO: make an adapter: stations to places
-#       
-
 
 # if __name__ == "__main__":
 #     print main("skolebakken st", "Denmark")

@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 import datetime
-import rmq_send
 import calendar
 import urllib
+import rmq_send
 from time import sleep
-from city_location_import import import_cities
 from dsb_parse import parse_departure_list
 from json_url_import import import_json
 from DepartureTimes.communication.interrupt_handler \
     import block_signals, exception_handler
+from google_georesolver import GoogleGeoResolver
+
 
 import_timeout_minutes = 5
 
@@ -17,14 +18,17 @@ dsb_url = "http://traindata.dsb.dk/stationdeparture/"\
 
 dsb_queue_url = dsb_url + "/Queue()?$format=json&$filter="
 dsb_stations_url = dsb_url + "/Station()?$format=json"
+
+
 def main():
     exception_handler(import_all)
 
 
 def import_all():
+    georesolver = GoogleGeoResolver()
     while True:
         with block_signals():
-            dsb_import()
+            dsb_import(georesolver)
 
             # Wait 5 minutes before importing again
             sleep(60 * import_timeout_minutes)
@@ -104,30 +108,46 @@ def unify_departure(departure):
 
 # Imports a list of stations:
 # () -> list of { Country, UIC, Name}
-def import_stations():
+def import_stations(georesolver):
     raw_json = import_json(dsb_stations_url)
     lst = raw_json['d']
-    return map(lambda x:
-               {"Country": x['CountryName'],
-                "Uic": x['UIC'],
-                "Name": x['Name'].encode("utf-8")}, lst)
+
+    # Convert the raw data to a sub set of the data we are interested in.
+    converted_data = map(convert_to_place, lst)
+    
+    # Add geo locations to data
+    return add_geo_locations_to_data(converted_data, georesolver)
 
 
-# see more at:
-# http://www.dsb.dk/dsb-labs/webservice-stationsafgange/
-def dsb_import():
-    print "Importing stations from DSB..."
-    stations = import_stations()
-    print "Found %r stations." % (len(stations))
+def add_geo_locations_to_data(places, georesolver):
+    georesolver.fetch_place_to_location_map(places)
+    return map(lambda p:
+               add_geo_locations_to_place(p, georesolver),
+               places)
 
-    print "Importing citites from csv file..."
-    cities = import_cities()
-    print "Found %r cities." % (len(cities))
 
-    print "Transmitting data to storage service..."
-    rmq_send.send_stations_to_storage(stations)
-    rmq_send.send_cities_to_storage(cities)
+def add_geo_locations_to_place(place, georesolver):
+        location = georesolver.lookup_place(place)
+        place.update(location)
+        return place
 
+
+# Input: S, station
+def convert_to_place(s):
+    return {"Country": countryname_to_country(s['CountryName']),
+            "Uic": s['UIC'],
+            "Name": s['Name'].encode("utf-8")}
+
+
+def countryname_to_country(country_name):
+    if country_name == "S":
+        return "Sweden"
+    if country_name == "DK":
+        return "Denmark"
+    return ""
+
+
+def dsb_import_departures_from_stations(stations):
     for station in stations:
         with block_signals():
             rmq_send.send_departures_to_storage(
@@ -137,3 +157,21 @@ def dsb_import():
 
         # Lets not ddos DSB :-)
         sleep(2)
+
+
+# see more at:
+# http://www.dsb.dk/dsb-labs/webservice-stationsafgange/
+def dsb_import(georesolver):
+    print "Importing stations from DSB..."
+    stations = import_stations(georesolver)
+    print "Found %r stations." % (len(stations))
+
+    print "Transmitting data to storage service..."
+    rmq_send.send_stations_to_storage(stations)
+
+    # Import departures from each station
+    dsb_import_departures_from_stations(stations)
+
+
+if __name__ == "__main__":
+    main()
