@@ -1,26 +1,25 @@
 import math
 # Finds the nearest cities
 
+
 # Calculates the distance between the stations in the list: stations
 # and the given point: lat, lon
 # returns the stations that are within the given radius.
 def get_stations_near(lat, lon, radius, stations):
     station_distances = map(lambda s:
-                            { 'Distance' : 
-                              distance_between_points(
-                                  lat, 
-                                  lon, 
-                                  float(s['Lat']), 
-                                  float(s['Lon'])),
-                              'Name' : s['Name'],
-                              'Uic' : s['Uic']},
+                            {'Distance':
+                             distance_between_points(
+                                 lat,
+                                 lon,
+                                 float(s['Location']['Lat']),
+                                 float(s['Location']['Lon'])),
+                             'Name': s['Name'],
+                             'Uic': s['Uic']},
                             stations)
+    print "B"
     return filter(
-        lambda s: s['Distance'] <= radius, 
+        lambda s: s['Distance'] <= radius,
         station_distances)
-
-
-
 
 
 # Thanks to:

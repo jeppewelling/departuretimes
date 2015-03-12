@@ -25,20 +25,21 @@ class GoogleGeoResolver(object):
     def fetch_place_to_location_map(self, list_of_places):
         # list_of_places = places_to_utf8(list_of_places)
         # First check if the locations are stored locally
-        self.index_cache = read_places(places_file)
-        self.index_cache = fillout_missing_places(list_of_places,
-                                                  self.index_cache)
-        store_places(places_file, self.index_cache)
-        return self.index_cache
+        self.cached_index = read_places(places_file)
+        self.cached_index = fillout_missing_places(list_of_places,
+                                                   self.cached_index)
+
+        store_places(places_file, self.cached_index)
+        return self.cached_index
 
     def lookup_place(self, place):
         country = place[C]
         name = place[N]
         if country not in self.cached_index:
-            return {}
+            return as_location_not_found()
 
         if name not in self.cached_index[country]:
-            return {}
+            return as_location_not_found()
 
         return self.cached_index[country][name]
 
@@ -65,8 +66,8 @@ def main(list_of_places):
 # Output: dict of: {Country: {Name : {Location: {Lat: l, Lon: o}}}}
 def fillout_missing_places(list_of_places, cached_index):
     for p in list_of_places:
-        country = toUtf8(p[C])
-        name = toUtf8(p[N])
+        country = p[C]
+        name = p[N]
         if country not in cached_index:
             cached_index[country] = {name: location_from_place(p)}
 
@@ -81,10 +82,6 @@ def bind_place_with_location(place):
     location = location_from_place(place)
     return {P: place,
             L: location}
-
-
-def toUtf8(v):
-    return v.decode('utf8')
 
 
 def location_from_place(p):
@@ -158,8 +155,8 @@ def read_places(file_path):
 def index_addresses_by_place(addresses):
     index = {}
     for address in addresses:
-        country = toUtf8(address[P][C])
-        name = toUtf8(address[P][N])
+        country = address[P][C]
+        name = address[P][N]
         location = address[L]
 
         if country not in index:
@@ -172,8 +169,3 @@ def index_addresses_by_place(addresses):
 
     return index
 
-
-# TODO: make an adapter: stations to places
-
-# if __name__ == "__main__":
-#     print main("skolebakken st", "Denmark")

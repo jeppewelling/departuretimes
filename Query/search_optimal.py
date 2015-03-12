@@ -67,7 +67,7 @@ def lon_span(lat, lon, distance):
                 LON_MAX: math.degrees(maxLon)}}
 
 
-def optimal_search(points, lat, lon, distance):
+def search(points, lat, lon, distance):
     approximate = approximate_search(points, lat, lon, distance)
     return filter(lambda p:
                   is_point_within_range(p, lat, lon, distance),
@@ -137,7 +137,7 @@ def test():
     distance = 15
 
     start = time.time()
-    result = optimal_search(out, lat, lon, distance)
+    result = search(out, lat, lon, distance)
     end = time.time()
 
     for r in result:

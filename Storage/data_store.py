@@ -5,23 +5,11 @@ class DataStore(object):
 
     def __init__(self):
         self.stations_index = {}
-        self.cities_index = {}
-        # departures are indexed by station id: Uic
         self.departures_index = {}
 
     # Return the stations with their geographical location appended
     def get_stations(self):
-        out = []
-        s = self.stations_index
-        c = self.cities_index
-
-        for key in s:
-            transformed = transform_stations(s[key], c)
-            if transformed is None:
-                continue
-            out.append(transformed)
-
-        return out
+        return self.stations_index
 
     # Returns a map from station id to list of departures
     def get_departures_from_stations(self, stations):
@@ -48,19 +36,9 @@ class DataStore(object):
         self.departures_index[station_id] = departures
 
     def index_stations(self, stations):
-        if not isinstance(stations, list):
-            return
-
         for s in stations:
             self.stations_index[s['Uic']] = s
 
-    def index_cities(self, cities):
-        if not isinstance(cities, list):
-            return
-
-        for c in cities:
-            name = strip_from_city_name(c['Name'])
-            self.cities_index[name] = c
 
 
 # Helpers for making station names match with the city names

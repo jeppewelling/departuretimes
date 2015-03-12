@@ -8,7 +8,7 @@ from dsb_parse import parse_departure_list
 from json_url_import import import_json
 from DepartureTimes.communication.interrupt_handler \
     import block_signals, exception_handler
-from google_georesolver import GoogleGeoResolver
+from google_georesolver import GoogleGeoResolver, as_location_not_found
 
 
 import_timeout_minutes = 5
@@ -107,19 +107,19 @@ def unify_departure(departure):
 
 
 # Imports a list of stations:
-# () -> list of { Country, UIC, Name}
+# georesolver -> list of { Country, UIC, Name}
 def import_stations(georesolver):
     raw_json = import_json(dsb_stations_url)
     lst = raw_json['d']
 
     # Convert the raw data to a sub set of the data we are interested in.
     converted_data = map(convert_to_place, lst)
-    
+
     # Add geo locations to data
-    return add_geo_locations_to_data(converted_data, georesolver)
+    return add_geo_locations_to_places(converted_data, georesolver)
 
 
-def add_geo_locations_to_data(places, georesolver):
+def add_geo_locations_to_places(places, georesolver):
     georesolver.fetch_place_to_location_map(places)
     return map(lambda p:
                add_geo_locations_to_place(p, georesolver),
@@ -127,7 +127,11 @@ def add_geo_locations_to_data(places, georesolver):
 
 
 def add_geo_locations_to_place(place, georesolver):
+    with block_signals():
         location = georesolver.lookup_place(place)
+        if not location:
+            location = as_location_not_found()
+
         place.update(location)
         return place
 

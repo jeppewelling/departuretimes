@@ -14,10 +14,6 @@ def signal_handler(signal, frame):
     if not processing_callback:
         shutdown()
 
-# Add the signal events
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
-
 
 @contextmanager
 def block_signals():
@@ -42,6 +38,10 @@ restart_wait_time_seconds = 10
 # A top level exception handler to keep the application alive on
 # error. E.g. if rmq is restarted.
 def exception_handler(main_f):
+    # Add the signal events
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     try:
         main_f()
     except Exception as ex:
