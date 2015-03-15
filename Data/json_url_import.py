@@ -11,8 +11,8 @@ def import_json(url):
 
 def import_http_json(url):
     response = urllib2.urlopen(url)
-    raw_departures = response.read()
-    return json.loads(raw_departures)
+    raw_output = response.read()
+    return json.loads(raw_output)
 
 
 def import_https_json(url):

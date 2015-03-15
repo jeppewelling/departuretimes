@@ -40,7 +40,6 @@ class DataStore(object):
             self.stations_index[s['Uic']] = s
 
 
-
 # Helpers for making station names match with the city names
 def remove_end_word(string, endword):
     if string.endswith(endword):

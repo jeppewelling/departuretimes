@@ -52,7 +52,7 @@ def distance_between_points(lat1, lon1, lat2, lon2):
     dk = c * Rk 
 		
     # round the results down to the nearest 1/1000
-    km = round(dk)
+    km = dk #round(dk)
     return km
 
 def deg2rad(deg):

@@ -1,4 +1,5 @@
 import pika
+from time import sleep
 from interrupt_handler import block_signals
 
 # A generic RPC server for RabbitMQ
@@ -11,14 +12,25 @@ class RpcServer(object):
     def __init__(self, queue_name, response_handler):
         self.consuming_started = False
         self.queue_name = queue_name
+        self.connect()
+        self.response_handler = response_handler
 
+        try:
+            self.connect()
+        except Exception as ex:
+            sleep_time = 10
+            print "Received exception: %s, reconnecting in: %s seconds"\
+                % (ex, sleep_time)
+            sleep(sleep_time)
+            self.connect()
+
+    def connect(self):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(
             host='localhost'))
-        self.response_handler = response_handler
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=queue_name)
+        self.channel.queue_declare(queue=self.queue_name)
         self.channel.basic_qos(prefetch_count=1)
-        self.channel.basic_consume(self.on_request, queue=queue_name)
+        self.channel.basic_consume(self.on_request, queue=self.queue_name)
 
     def start_consuming(self):
         if self.consuming_started:

@@ -1,5 +1,6 @@
 from time import sleep
 import json
+import codecs
 from os.path import isfile
 from json_url_import import import_json
 from urllib import urlencode
@@ -23,9 +24,10 @@ class GoogleGeoResolver(object):
         self.cached_index = {}
 
     def fetch_place_to_location_map(self, list_of_places):
-        # list_of_places = places_to_utf8(list_of_places)
         # First check if the locations are stored locally
         self.cached_index = read_places(places_file)
+
+        # Ensure that new places are added to the index and georesolved
         self.cached_index = fillout_missing_places(list_of_places,
                                                    self.cached_index)
 
@@ -45,43 +47,40 @@ class GoogleGeoResolver(object):
 
 
 # A list of places: {Name: n, Country: c}
-def main(list_of_places):
-    # list_of_places = places_to_utf8(list_of_places)
-    # First check if the locations are stored locally
-    index_cache = read_places(places_file)
+# def main(list_of_places):
+#     # list_of_places = places_to_utf8(list_of_places)
+#     # First check if the locations are stored locally
+#     index_cache = read_places(places_file)
 
-    updated_index = fillout_missing_places(list_of_places, index_cache)
-    store_places(places_file, updated_index)
-    return updated_index
+#     updated_index = fillout_missing_places(list_of_places, index_cache)
+#     store_places(places_file, updated_index)
+#     return updated_index
 
 
 # Georesolves the elements of the list: list_of_places that are not
 # already found in the cached index.
 #
-# Input: list of: {Name: n, Country: c},
+# Input:
+#  list_of_places:
+#  list of: {Name: n, Country: c},
 #
-# cached_index:
-# {country: {place: {Location: {Lat: l, Lon: o}}}}
+#  cached_index:
+#  dict of: {Country: {Place: {Location: {Lat: l, Lon: o}}}}
 #
-# Output: dict of: {Country: {Name : {Location: {Lat: l, Lon: o}}}}
+# Output:
+#  dict of: {Country: {Place: {Location: {Lat: l, Lon: o}}}}
 def fillout_missing_places(list_of_places, cached_index):
     for p in list_of_places:
         country = p[C]
-        name = p[N]
+        place_name = p[N]
         if country not in cached_index:
-            cached_index[country] = {name: location_from_place(p)}
+            cached_index[country] = {place_name: location_from_place(p)}
 
         place_index = cached_index[country]
-        if name not in place_index:
-            cached_index[country][name] = location_from_place(p)
+        if place_name not in place_index:
+            cached_index[country][place_name] = location_from_place(p)
 
     return cached_index
-
-
-def bind_place_with_location(place):
-    location = location_from_place(place)
-    return {P: place,
-            L: location}
 
 
 def location_from_place(p):
@@ -142,13 +141,13 @@ def read_places(file_path):
         print "No file found for place locations at: %s." % file_path
         return {}
     try:
-        with open(file_path, 'r') as f:
-            addresses = json.load(f)
+        with codecs.open(file_path, 'r') as f:
+            places = json.load(f)
         f.close()
     except ValueError as ex:
         print "Unable to parse json file: %s" % ex
         return {}
-    return addresses
+    return places
 
 
 # Input: paris of place, location
@@ -168,4 +167,3 @@ def index_addresses_by_place(addresses):
         places[name] = location
 
     return index
-

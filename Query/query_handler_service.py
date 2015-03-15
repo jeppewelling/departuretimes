@@ -13,7 +13,7 @@ from DepartureTimes.communication.queues import query_queue_name
 
 
 def main():
-#    exception_handler(setup)
+    #exception_handler(setup)
     setup()
 
 
@@ -45,6 +45,7 @@ class QueryServiceHandler(object):
         self.stations_cache = []
 
     def on_message_received(self, request):
+        print "message received: %s" % request
         request = json.loads(request)
         lat = float(request['Lat'])
         lon = float(request['Lon'])
@@ -70,7 +71,7 @@ class QueryServiceHandler(object):
         # departures for each stataion
         start = time.time()
         from search_optimal import search
-
+        print "before search"
         ## TODO deprecate get_stations_near
         # stations_near_by = get_stations_near(
         #     lat, lon, radius, self.stations_cache)
@@ -114,9 +115,6 @@ def add_from_name_to_departures(local_stations, departures):
 def append_from_station_name(station, departures_from_station, uic):
     return {"Uic": uic,
             "StationName": station['Name'],
-            "Departures": departures_from_station}
-
-
-
-
-
+            "Departures": departures_from_station,
+            "Distance": station['Distance'],
+            "Location": station['Location']}

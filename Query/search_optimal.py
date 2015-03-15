@@ -13,6 +13,7 @@ LON_MIN = u'LonMin'
 LON_MAX = u'LonMax'
 
 B = u'Bound'
+D = u'Distance'
 
 # Thanks to:
 # http://janmatuschek.de/LatitudeLongitudeBoundingCoordinates
@@ -50,14 +51,14 @@ def lon_span(lat, lon, distance):
 
         if minLon < MIN_LON:
             minLon += 2 * math.pi
-
         maxLon = radLon + deltaLon
         if maxLon > MAX_LON:
             maxLon -= 2 * math.pi
+
     else:
         # a pole is within the distance
-        minLat = math.max(minLat, MIN_LAT)
-        maxLat = math.min(maxLat, MAX_LAT)
+        minLat = max(minLat, MIN_LAT)
+        maxLat = min(maxLat, MAX_LAT)
         minLon = MIN_LON
         maxLon = MAX_LON
 
@@ -69,22 +70,31 @@ def lon_span(lat, lon, distance):
 
 def search(points, lat, lon, distance):
     approximate = approximate_search(points, lat, lon, distance)
+    point_with_distance = map(lambda p:
+                              add_distance_to_point(p, lat, lon),
+                              approximate)
     return filter(lambda p:
-                  is_point_within_range(p, lat, lon, distance),
-                  approximate)
+                  distance >= p[D],
+                  point_with_distance)
 
 
-def is_point_within_range(p, lat, lon, distance):
+def add_distance_to_point(p, lat, lon):
     loc = p[L]
-    return distance >= distance_between_points(lat,
-                                               lon,
-                                               loc[LAT],
-                                               loc[LON])
+    distance_points = distance_between_points(lat,
+                                              lon,
+                                              loc[LAT],
+                                              loc[LON])
+    p.update({D: distance_points})
+    return p
 
 
 # Find the points within the square of the source point.
 def approximate_search(points, lat, lon, distance):
     span = lon_span(lat, lon, distance)
+
+    if span is None:
+        return None
+
     return filter(lambda p:
                   is_point_nearby(p, span),
                   points)
@@ -96,7 +106,6 @@ def is_point_nearby(p, span):
         return False
 
     bound = span[B]
-
     lat = loc[LAT]
     lon = loc[LON]
 
@@ -107,52 +116,52 @@ def is_point_nearby(p, span):
 
 
 def get_lat(loc):
-    if 'Lat' in loc:
-        return loc['Lat']
+    if LAT in loc:
+        return loc[LAT]
     return 0
 
 
 def get_lon(loc):
-    if 'Lon' in loc:
-        return loc['Lon']
+    if LON in loc:
+        return loc[LON]
     return 0
- 
-
-def test():
-    from Data.google_georesolver import read_places
-    places_indexed = read_places("./places_location.json")
-
-    out = []
-    for country, places in places_indexed.iteritems():
-        for place, location in places.iteritems():
-            out.append({'Name': place,
-                        'Country': country,
-                        'Location': location['Location'],
-                        'Lat': get_lat(location['Location']),
-                        'Lon': get_lon(location['Location']),
-                        'Uic': 42})
-
-    lat = 56.1500
-    lon = 10.2167
-    distance = 15
-
-    start = time.time()
-    result = search(out, lat, lon, distance)
-    end = time.time()
-
-    for r in result:
-        print r
-
-    print "New: Execution time: %s seconds." % (end - start)
-
-    start = time.time()
-    old_resul = get_stations_near(lat, lon, distance, out)
-    end = time.time()
-
-    for r in old_resul:
-        print r
-    print "Old: Execution time: %s seconds." % (end - start)
 
 
-if __name__ == "__main__":
-    test()
+# def test():
+#     from Data.google_georesolver import read_places
+#     places_indexed = read_places("./places_location.json")
+
+#     out = []
+#     for country, places in places_indexed.iteritems():
+#         for place, location in places.iteritems():
+#             out.append({'Name': place,
+#                         'Country': country,
+#                         'Location': location['Location'],
+#                         'Lat': get_lat(location['Location']),
+#                         'Lon': get_lon(location['Location']),
+#                         'Uic': 42})
+
+#     lat = 56.1500
+#     lon = 10.2167
+#     distance = 15
+
+#     start = time.time()
+#     result = search(out, lat, lon, distance)
+#     end = time.time()
+
+#     for r in result:
+#         print r
+
+#     print "New: Execution time: %s seconds." % (end - start)
+
+#     start = time.time()
+#     old_resul = get_stations_near(lat, lon, distance, out)
+#     end = time.time()
+
+#     for r in old_resul:
+#         print r
+#     print "Old: Execution time: %s seconds." % (end - start)
+
+
+# if __name__ == "__main__":
+#     test()
