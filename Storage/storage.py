@@ -85,4 +85,3 @@ def add_rpc_queue(channel, queue_name, message_handler):
                           queue=queue_name)
     print " [x] Waiting for messages on RPC queue: %r" \
         % queue_name
-

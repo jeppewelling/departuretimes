@@ -12,7 +12,6 @@ class RpcServer(object):
     def __init__(self, queue_name, response_handler):
         self.consuming_started = False
         self.queue_name = queue_name
-        self.connect()
         self.response_handler = response_handler
 
         try:

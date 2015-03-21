@@ -49,7 +49,7 @@ def add_seconds(dt, s):
     return dt + datetime.timedelta(seconds=s)
 
 
-# Impors the list of departures from a given station.
+# Imports the list of departures from a given station.
 # UIC -> list of <departure info>
 def import_departures_from_station(station_id):
     q = get_station_query(station_id)

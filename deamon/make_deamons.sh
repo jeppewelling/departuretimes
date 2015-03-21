@@ -9,3 +9,6 @@ chmod 755 data_service
 
 ./make_deamon.sh storage_service /srv/departuretimes run_storage.py
 chmod 755 storage_service
+
+./make_deamon.sh health_service /srv/departuretimes run_health.py 
+chmod 755 health_service

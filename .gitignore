@@ -2,3 +2,5 @@
 *.pyc
 #*#
 Data/data/*
+.idea
+*.log

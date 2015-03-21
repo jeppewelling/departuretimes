@@ -1,6 +1,4 @@
-import time
 import math
-from search import distance_between_points, get_stations_near
 
 L = u"Location"
 LAT = u"Lat"
@@ -101,18 +99,20 @@ def approximate_search(points, lat, lon, distance):
 
 
 def is_point_nearby(p, span):
+    if L not in p:
+        return False
     loc = p[L]
     if LAT not in loc:
         return False
 
-    bound = span[B]
-    lat = loc[LAT]
-    lon = loc[LON]
+        bound = span[B]
+        lat = loc[LAT]
+        lon = loc[LON]
 
-    return lat <= bound[LAT_MAX] \
-        and lat >= bound[LAT_MIN] \
-        and lon <= bound[LON_MAX] \
-        and lon >= bound[LON_MIN]
+        return lat <= bound[LAT_MAX] \
+            and lat >= bound[LAT_MIN] \
+            and lon <= bound[LON_MAX] \
+            and lon >= bound[LON_MIN]
 
 
 def get_lat(loc):
@@ -127,41 +127,58 @@ def get_lon(loc):
     return 0
 
 
-# def test():
-#     from Data.google_georesolver import read_places
-#     places_indexed = read_places("./places_location.json")
-
-#     out = []
-#     for country, places in places_indexed.iteritems():
-#         for place, location in places.iteritems():
-#             out.append({'Name': place,
-#                         'Country': country,
-#                         'Location': location['Location'],
-#                         'Lat': get_lat(location['Location']),
-#                         'Lon': get_lon(location['Location']),
-#                         'Uic': 42})
-
-#     lat = 56.1500
-#     lon = 10.2167
-#     distance = 15
-
-#     start = time.time()
-#     result = search(out, lat, lon, distance)
-#     end = time.time()
-
-#     for r in result:
-#         print r
-
-#     print "New: Execution time: %s seconds." % (end - start)
-
-#     start = time.time()
-#     old_resul = get_stations_near(lat, lon, distance, out)
-#     end = time.time()
-
-#     for r in old_resul:
-#         print r
-#     print "Old: Execution time: %s seconds." % (end - start)
+# Calculates the distance between the stations in the list: stations
+# and the given point: lat, lon
+# returns the stations that are within the given radius.
+def get_stations_near(lat, lon, radius, stations):
+    station_distances = map(lambda s:
+                            {'Distance':
+                             distance_between_points(
+                                 lat,
+                                 lon,
+                                 float(s['Location']['Lat']),
+                                 float(s['Location']['Lon'])),
+                             'Name': s['Name'],
+                             'Uic': s['Uic']},
+                            stations)
+    print "B"
+    return filter(
+        lambda s: s['Distance'] <= radius,
+        station_distances)
 
 
-# if __name__ == "__main__":
-#     test()
+# Thanks to:
+# http://andrew.hedges.name/experiments/haversine/
+def distance_between_points(lat1, lon1, lat2, lon2):
+    # mean radius of the earth (km) at 39 degrees from the equator
+    Rk = 6373
+
+    t1 = lat1
+    n1 = lon1
+    t2 = lat2
+    n2 = lon2
+
+    # convert coordinates to radians
+    lat1 = deg2rad(t1)
+    lon1 = deg2rad(n1)
+    lat2 = deg2rad(t2)
+    lon2 = deg2rad(n2)
+
+    # find the differences between the coordinates
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    # here's the heavy lifting
+    a  = math.pow(math.sin(dlat/2),2) + math.cos(lat1) * math.cos(lat2) * math.pow(math.sin(dlon/2),2)
+
+    # great circle distance in radians
+    c  = 2 * math.atan2(math.sqrt(a),math.sqrt(1-a)) 
+    # great circle distance in km
+    km = c * Rk
+
+    return km
+
+
+def deg2rad(deg):
+    rad = deg * math.pi/180
+    return rad

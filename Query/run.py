@@ -1,4 +1,4 @@
-from query_handler_service import main
+from query_service import main
 
 
 def run():

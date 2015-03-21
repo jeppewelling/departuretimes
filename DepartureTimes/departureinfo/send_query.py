@@ -19,5 +19,5 @@ def encode_message(lat, lon, radius):
 
 
 if __name__ == "__main__":
-    print send_to_query_handler(56.1500, 10.2167, 100)
+    print send_to_query_handler(56.837871, 9.8927479, 10)
     
