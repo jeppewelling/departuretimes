@@ -4,31 +4,25 @@
 # plotting graphs.
 
 import json
-import time
+
 from DepartureTimes.communication.read_from_queue import RmqReader
 from DepartureTimes.communication.queues import health_queue_name
 from DepartureTimes.communication.send_to_queue import send
 from DepartureTimes.communication.interrupt_handler import exception_handler
+from Health.data import T, M, TS, V, make_health_state, now_ms, make_measure
+from Health.statistics import on_new_measure
 
-# Health   ::= [<Type> <Measure>]
-# Type     ::= SearchTime | ...
-# Measure  ::= [<TimeStamp> <decimal>]
-
-M = u'Measure'
-T = u'Type'
-TS = u'TimeStamp'
-V = u'Value'
 
 SearchTime = "SearchTime"
 FetchStationsTime = "FetchStationsTime"
 FetchDeparturesTime = "FetchDeparturesTime"
 
-searchTimeLogFile = "./health_%s.log"
+searchTimeLogFile = "./Health/health_%s.log"
+
 
 
 def main():
     exception_handler(start_health_service)
-
 
 # Health point markers for the system
 def health_check_search_time(measured_value):
@@ -44,7 +38,8 @@ def health_check_fetch_departures(measured_value):
 
 
 def health_check(kind, measured_value):
-    health = make_health_state(kind, measured_value)
+    m = make_measure(measured_value)
+    health = make_health_state(kind, m)
     send(health_queue_name, json.dumps(health))
 
 
@@ -54,7 +49,7 @@ def start_health_service():
     reader.start_consuming()
 
 
-# Handles incomming health messages from RMQ
+# Handles incoming health messages from RMQ
 def health_message_handler(message):
     health = json.loads(message)
     health_type = health[T]
@@ -63,16 +58,11 @@ def health_message_handler(message):
 
 
 def write_to_log(kind, measure):
+    on_new_measure(measure)
     log_name = searchTimeLogFile % kind
     with open(log_name, "a+") as f:
-        f.write("%s %s\n" % (measure[TS], measure[V]))
+        f.write("%s %s\n" % ("{0:.2f}".format(measure[TS]), measure[V]))
     f.close()
 
 
-def make_measure(ts, v):
-    return {TS: ts, V: v}
 
-
-def make_health_state(t, v):
-    m = make_measure(int(time.time()), v)
-    return {T: t, M: m}

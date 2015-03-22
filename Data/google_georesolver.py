@@ -2,6 +2,7 @@ from time import sleep
 import json
 import codecs
 from os.path import isfile
+import urllib
 from json_url_import import import_json
 from urllib import urlencode
 
@@ -99,7 +100,16 @@ def resolve_place(place, country):
     # hour. The max requests per 24 hour is not checked!
     sleep(0.2)
 
-    address = "%s,%s" % (place, country)
+    if not " st" in place.lower():
+        place = place + " st"
+
+
+    print "place: %s %s" % (place, type(place))
+    print "country: %s %s" % (country, type(country))
+
+    address = u"%s,%s" % (place, country)
+    address = address.encode('utf8')
+
     enc = urlencode({'address': address})
     url = api_url % enc
     return import_json(url)
@@ -112,8 +122,23 @@ def location_from_google_place_info(place_info):
     if not results:
         return as_location_not_found()
 
-    location = results[0]['geometry']['location']
+    #location = results[0]['geometry']['location']
+    location = first_or_train_type(results)
     return as_location(location['lat'], location['lng'])
+
+
+def first_or_train_type(results):
+    for r in results:
+        address_components = r['address_components']
+        for a in address_components:
+            types = a['types']
+            for t in types:
+                if t == "train_station":
+                    return r['geometry']['location']
+
+    return results[0]['geometry']['location']
+
+
 
 
 def as_place(name, country):

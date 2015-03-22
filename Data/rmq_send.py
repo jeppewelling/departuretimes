@@ -30,9 +30,7 @@ def send_cities_to_storage(cities):
 
 
 def make_meta(lst, data_type):
-    meta = {}
-    meta['type'] = data_type
-    meta['data'] = lst
+    meta = {'type': data_type, 'data': lst}
     return meta
 
 

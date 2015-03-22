@@ -21,7 +21,8 @@ dsb_stations_url = dsb_url + "/Station()?$format=json"
 
 
 def main():
-    exception_handler(import_all)
+    #exception_handler(import_all)
+    import_all()
 
 
 def import_all():

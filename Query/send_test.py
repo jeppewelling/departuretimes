@@ -1,6 +1,6 @@
-from query_handler_service import storage_query_get_stations
-from DepartureTimes.communication.send_to_queue import send
 import json
+from query_service import storage_query_get_stations
+from DepartureTimes.communication.send_to_queue import send
 
 
 if __name__ == '__main__':

@@ -25,6 +25,10 @@ class DataStore(object):
 
         return departure_map
 
+
+    def get_all_departures(self):
+        return self.departures_index
+
     def add_to_departures_index(self, station_id, departures):
         self.departures_index[station_id] = departures
 

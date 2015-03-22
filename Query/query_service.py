@@ -1,89 +1,103 @@
 import json
 import time
-from DepartureTimes.communication.rpc_server import RpcServer
-from DepartureTimes.communication.queues import \
-    query_queue_name, \
-    storage_query_queue_name
-
-from DepartureTimes.communication.interrupt_handler import exception_handler
-from Health.health import \
-    health_check_search_time, \
-    health_check_fetch_stations, \
-    health_check_fetch_departures
-from search_optimal import search
+from DepartureTimes.communication.queues import query_queue_name
 from DepartureTimes.communication.rpc_client import RpcClient
+from Health.data import now_ms
+
+from Health.health import health_check_search_time
+from Query.setup_rmq import RmqSetup
+from search import search
 
 
 def main():
-    #exception_handler(setup)
+    # exception_handler(setup)
     setup()
 
 
+# The public entry to searching
+# Posts an entry in the search queue: "query_queue"
+rpc = RpcClient(query_queue_name)
+def find_departures(lat, lon, radius):
+    start = now_ms()
+    result = json.loads(rpc.call(encode_message(lat, lon, radius)))
+    end = now_ms()
+    health_check_search_time(end - start)
+    return result
+
+def encode_message(lat, lon, radius):
+    req = {'Lat': lat, 'Lon': lon, 'RadiusKm': radius}
+    return json.dumps(req)
+
+
+
+
+# setup the RMQ subscription / RPC
 def setup():
     query_service = QueryService()
-#    query_service.fetch_stations_from_storage()
+    rmq = RmqSetup(query_service)
 
-    server = RpcServer(query_queue_name, query_service)
-    server.start_consuming()
+    # On startup read all stations and departures from the storage.
+    print " [Query] Fetching initial state from storage..."
+    rmq.fetch_stations_from_storage()
+    rmq.fetch_all_departures_from_storage()
+
+    print " [Query] Initial state fetched. Ready for queries."
+    # start listening on the messages published by the storage
+    rmq.start_listening()
 
 
-# Handles the request by the web client
+def as_subscription(e, m):
+    return {'ExchangeName': e, 'MessageHandler': m}
+
+
+def as_rpc(e, m):
+    return {'QueueName': e, 'MessageHandler': m}
+
+
+
+# Handles the request from the web client
+# Maintains a local cache of the storage (is continuously updated by the storage)
 class QueryService(object):
     def __init__(self):
         self.stations_cache = []
+        self.departures = {}
 
-    # Fetches the stations from the storage, this information is
-    # pretty static so only call this once.
-    def fetch_stations_from_storage(self):
-        # The stations are returned as a mapping from station id
-        # to stations, lets convert it into a list for the search
-        # algorithm.
-        start = time.time()
-        self.stations_cache = storage_query_get_stations()
-        end = time.time()
-        health_check_fetch_stations(end - start)
+    def get_stations(self):
+        return self.stations_cache
 
+    # Input: dict of: Uic -> list of departures
+    # Called when a departure is published from the storage
+    def update_departures(self, departures_from_single_station):
+        if departures_from_single_station == "": return
+        parsed = json.loads(departures_from_single_station)
+        self.departures.update(parsed)
+
+    # Input: list of stations
+    # Called when the storage sends out an updated list of stations
+    def update_stations(self, stations):
+        if stations == "": return
+        parsed = json.loads(stations)
+        self.stations_cache = parsed
+
+
+    # This method is called by the RpcServer thread waiting for requests.
     def on_message_received(self, request):
-        # If no statios were found in the cache, read from the store
-        
-        # if not self.stations_cache:
-        #     self.fetch_stations_from_storage()
-
-        print "message received: %s" % request
+        if request == "": return
         request = json.loads(request)
         lat = float(request['Lat'])
         lon = float(request['Lon'])
         radius = float(request['RadiusKm'])
 
-        start = time.time()
         stations_near_by = search(self.stations_cache, lat, lon, radius)
-        end = time.time()
-        health_check_search_time(end - start)
-
-        print "stations near by: %s" % stations_near_by
-
-        # Get departures for local stations.  Stations with no departures
-        # are weeded out, thus there is no guarantee that there is a
-        # mapping for each local station.
-        start = time.time()
-        # TODO add timeout
-        departures = storage_query_get_departures(stations_near_by)
-        end = time.time()
-        health_check_fetch_departures(end - start)
-
-        print "storage_query_get_departures time: %s seconds." % (end - start)
-        print ""
 
         departures_added_name = map_stations_to_departures(stations_near_by,
-                                                           departures)
-        
-        return json.dumps(make_result(lat,
-                                      lon,
-                                      departures_added_name))
+                                                           self.departures)
+
+        return json.dumps(departures_added_name)
 
 
 # Input: list of: local_stations,
-#        dict of: Uic -> departures
+# dict of: Uic -> departures
 # Output: list of: {Uic, StationName, Departures, Distance, Location}
 # (see output_information)
 def map_stations_to_departures(local_stations, departures):
@@ -110,34 +124,10 @@ def output_information(station, departures_from_station, uic):
 
 
 # Wraps the result to be returned to the client
-def make_result(lat, lon, result):
-    res = {}
-    res['request'] = {'lat': lat, 'lon': lon}
-    res['result'] = result
-    return result
+# def make_result(lat, lon, result):
+#     res = {}
+#     res['request'] = {'lat': lat, 'lon': lon}
+#     res['result'] = result
+#     return result
 
 
-# input: dictionary of: station_id -> station
-# output: list of stations
-# def to_list(station_index):
-#     out = []
-#     for i, station in station_index.iteritems():
-#         out.append(station)
-#     return out
-
-
-# Used to read from the storage
-rpcClient = RpcClient(storage_query_queue_name)
-
-
-def storage_query_get_stations():
-    q = {}
-    q['type'] = "get_stations"
-    return json.loads(rpcClient.call(json.dumps(q)))
-
-
-def storage_query_get_departures(stations):
-    q = {}
-    q['type'] = "get_departures"
-    q['data'] = stations
-    return json.loads(rpcClient.call(json.dumps(q)))

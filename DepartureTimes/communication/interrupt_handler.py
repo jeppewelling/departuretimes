@@ -52,3 +52,20 @@ def exception_handler(main_f):
         print "lets start again in %s seconds ;-)" % restart_wait_time_seconds
         sleep(restart_wait_time_seconds)
         exception_handler(main_f)
+
+
+@contextmanager
+def message_exception_handler(body):
+    try:
+        yield
+    except Exception as ex:
+        print " [Exception] Input error: %s" % body
+        print " [Exception] %s" % ex.message
+
+
+@contextmanager
+def rpc_exception_handler():
+    try:
+        yield
+    except Exception as ex:
+        print " [Exception] in RMQ RPC context. Probably a connection was closed: %s" % ex

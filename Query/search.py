@@ -16,10 +16,10 @@ D = u'Distance'
 # Thanks to:
 # http://janmatuschek.de/LatitudeLongitudeBoundingCoordinates
 
-MIN_LAT = math.radians(-90)   # -PI/2
-MAX_LAT = math.radians(90)    # PI/2
+MIN_LAT = math.radians(-90)  # -PI/2
+MAX_LAT = math.radians(90)  # PI/2
 MIN_LON = math.radians(-180)  # -PI
-MAX_LON = math.radians(180)   # PI
+MAX_LON = math.radians(180)  # PI
 
 EARTH_RADIUS_KM = 6371.01
 
@@ -99,20 +99,16 @@ def approximate_search(points, lat, lon, distance):
 
 
 def is_point_nearby(p, span):
-    if L not in p:
-        return False
     loc = p[L]
     if LAT not in loc:
         return False
 
-        bound = span[B]
-        lat = loc[LAT]
-        lon = loc[LON]
+    bound = span[B]
+    lat = loc[LAT]
+    lon = loc[LON]
 
-        return lat <= bound[LAT_MAX] \
-            and lat >= bound[LAT_MIN] \
-            and lon <= bound[LON_MAX] \
-            and lon >= bound[LON_MIN]
+    return bound[LAT_MAX] >= lat >= bound[LAT_MIN] \
+           and bound[LON_MAX] >= lon >= bound[LON_MIN]
 
 
 def get_lat(loc):
@@ -133,11 +129,11 @@ def get_lon(loc):
 def get_stations_near(lat, lon, radius, stations):
     station_distances = map(lambda s:
                             {'Distance':
-                             distance_between_points(
-                                 lat,
-                                 lon,
-                                 float(s['Location']['Lat']),
-                                 float(s['Location']['Lon'])),
+                                 distance_between_points(
+                                     lat,
+                                     lon,
+                                     float(s['Location']['Lat']),
+                                     float(s['Location']['Lon'])),
                              'Name': s['Name'],
                              'Uic': s['Uic']},
                             stations)
@@ -169,10 +165,10 @@ def distance_between_points(lat1, lon1, lat2, lon2):
     dlon = lon2 - lon1
 
     # here's the heavy lifting
-    a  = math.pow(math.sin(dlat/2),2) + math.cos(lat1) * math.cos(lat2) * math.pow(math.sin(dlon/2),2)
+    a = math.pow(math.sin(dlat / 2), 2) + math.cos(lat1) * math.cos(lat2) * math.pow(math.sin(dlon / 2), 2)
 
     # great circle distance in radians
-    c  = 2 * math.atan2(math.sqrt(a),math.sqrt(1-a)) 
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     # great circle distance in km
     km = c * Rk
 
@@ -180,5 +176,5 @@ def distance_between_points(lat1, lon1, lat2, lon2):
 
 
 def deg2rad(deg):
-    rad = deg * math.pi/180
+    rad = deg * math.pi / 180
     return rad
