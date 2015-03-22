@@ -89,23 +89,31 @@ def location_from_place(p):
     loc = location_from_google_place_info(
         resolve_place(p[N],
                       p[C]))
+
+
     print "Google georesolver: Searched for: %s, found: %s" % (p, loc)
     return loc
 
 
 def resolve_place(place, country):
+    if not place.lower().endswith(" st"):
+        place_st = place + " st"
+
+    res = resolve_place_helper(place_st, country)
+
+    # try again without st
+    if not res['results']:
+        res = resolve_place_helper(place, country)
+
+    return res
+
+
+def resolve_place_helper(place, country):
     """ Input: place, country. Returns the raw json from the google api. """
 
     # Google allows for 5 request per second, 2500 requests per 24
     # hour. The max requests per 24 hour is not checked!
     sleep(0.2)
-
-    if not " st" in place.lower():
-        place = place + " st"
-
-
-    print "place: %s %s" % (place, type(place))
-    print "country: %s %s" % (country, type(country))
 
     address = u"%s,%s" % (place, country)
     address = address.encode('utf8')
@@ -113,6 +121,8 @@ def resolve_place(place, country):
     enc = urlencode({'address': address})
     url = api_url % enc
     return import_json(url)
+
+
 
 
 def location_from_google_place_info(place_info):

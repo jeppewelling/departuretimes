@@ -88,7 +88,7 @@
 					+" "
 					+ iconByType(type)
 					+ fromStation 
-					+ " ("+ distance +" km) -&gt; "
+					+ " ("+ distance +" km) <span style=\"font-size:25px\">&#8594;</span> "
 					+ destinationName
 					+"</li>");
 	    });
@@ -118,10 +118,10 @@
 		return map;
 	    }
 	    
-	    function positionOnMap(lat, lon, map, stationName)
+	    function positionOnMap(lat, lon, map, stationName, destinations)
 	    {
 		var latlon = new google.maps.LatLng(lat, lon);
-		new google.maps.Marker({position:latlon,map:map,title:stationName});
+		new google.maps.Marker({position:latlon,map:map,title:stationName+"\n"+destinations});
 	    }
 
 	    // string -> void
@@ -131,8 +131,13 @@
 			var stationLocation = fromStation.Location;
 			var lat = stationLocation.Lat;
 			var lon = stationLocation.Lon;
+            var departures = fromStation.Departures
 
-			positionOnMap(lat, lon, map, fromStation.StationName);
+            if (departures.length == 0)
+                return;
+
+
+            var departures_description = "";
 			$.each(fromStation.Departures, function (i, d) {
 			    // Date -> string
 			    function formatDate(ms) {
@@ -145,19 +150,26 @@
 				var date = new Date(ms*1000);
 				return padNumber(date.getHours()) +":"+ padNumber(date.getMinutes());
 			    }
-			    
+
+			    var date = formatDate(d.DepartureTime);
 			    var dep = new Departure();
 			    dep.set({
 				FromStation: fromStation.StationName,
 				DestinationName: d.DestinationName,
-				DepartureTime: formatDate(d.DepartureTime),
+				DepartureTime: date,
 				Cancelled: d.Cancelled,
 				Track: d.Track,
 				Distance: fromStation.Distance.toFixed(2),
 				Type: d.Type
 			    });
 			    self.collection.add(dep);
+
+			    departures_description += date + " "+ d.DestinationName +"\n"
 			});
+
+			positionOnMap(lat, lon, map, fromStation.StationName, departures_description);
+
+
 		    });
 		    self.renderDepartures();
 		});
