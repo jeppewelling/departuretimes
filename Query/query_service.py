@@ -36,6 +36,7 @@ def setup():
     query_service = QueryService()
     rmq = RmqSetup(query_service)
 
+
     # On startup read all stations and departures from the storage.
     print " [Query] Fetching initial state from storage..."
     rmq.fetch_stations_from_storage()

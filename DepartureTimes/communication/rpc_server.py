@@ -1,5 +1,6 @@
 import pika
 from time import sleep
+from DepartureTimes.communication.util import ensure_data_events_are_processed
 from interrupt_handler import block_signals
 
 # A generic RPC server for RabbitMQ
@@ -44,6 +45,7 @@ class RpcServer(object):
     def on_request(self, ch, method, props, body):
         with block_signals():
             response = self.response_handler.on_message_received(body)
+            ensure_data_events_are_processed(ch)
             ch.basic_publish(exchange='',
                              routing_key=props.reply_to,
                              properties=pika.BasicProperties(

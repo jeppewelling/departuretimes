@@ -20,11 +20,12 @@ def on_new_measure(m):
     global cnt, points, mean_y, mean_length, current_slope, current_offset, current_integrate
     cnt += 1
 
-    if (cnt + 1) % mean_length == 0:
+    if cnt % mean_length == 0:
         a = current_slope
         b = current_offset
         i = current_integrate
 
+        print "cnt: %s" % cnt
         print "Average search time: %s ms" % mean_y
         print "Average regression line for the last %s points" % mean_length
         print "y = %sx + %s" % (a, b)

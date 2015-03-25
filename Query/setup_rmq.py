@@ -27,7 +27,7 @@ class RmqSetup(object):
 
 
         # A helper for subscribing to an exchange
-        def add_to_exchange(exchange_name, message_handler):
+        def subscribe_to_exchange(exchange_name, message_handler):
             def callback(ch, method, properties, body):
                 message_handler(body)
 
@@ -37,13 +37,14 @@ class RmqSetup(object):
             queue_name = result.method.queue
             self.channel.queue_bind(exchange=exchange_name,
                                     queue=queue_name)
+
             self.channel.basic_consume(callback,
                                        queue=queue_name,
                                        no_ack=True)
 
 
-        add_to_exchange(departures_exchange, self.query_service.update_departures)
-        add_to_exchange(stations_exchange, self.query_service.update_stations)
+        subscribe_to_exchange(departures_exchange, self.query_service.update_departures)
+        subscribe_to_exchange(stations_exchange, self.query_service.update_stations)
 
         # Setup the rpc service for finding stations
         add_rpc_server_queue(self.channel, query_queue_name, self.query_service.on_message_received)
@@ -78,5 +79,4 @@ class RmqSetup(object):
             traceback.print_exc()
             self.connect()
             self.channel.start_consuming()
-
 

@@ -6,6 +6,7 @@
 import sys
 import uuid
 import pika
+#from DepartureTimes.communication.util import ensure_data_events_are_processed
 
 
 class RpcClient(object):
@@ -26,6 +27,7 @@ class RpcClient(object):
             self.response = body
 
     def call(self, message):
+        #ensure_data_events_are_processed(self.channel)
         self.response = None
         self.corr_id = str(uuid.uuid4())
         self.channel.basic_publish(exchange='',
@@ -35,7 +37,7 @@ class RpcClient(object):
                                          correlation_id=self.corr_id),
                                    body=message)
         while self.response is None:
-            #sys.stdout.write('.')
+            sys.stdout.write('+')
             self.connection.process_data_events()
         return self.response
 
@@ -49,9 +51,10 @@ class RpcChannelClient(object):
         self.channel = channel
         self.queue_name = queue_name
         # Define a callback queue (not named)
-        result = self.channel.queue_declare(exclusive=True)
+
+        result = channel.queue_declare(exclusive=True)
         self.callback_queue = result.method.queue
-        self.channel.basic_consume(self.on_response, no_ack=True,
+        channel.basic_consume(self.on_response, no_ack=True,
                                    queue=self.callback_queue)
 
     def on_response(self, ch, method, props, body):
@@ -59,6 +62,7 @@ class RpcChannelClient(object):
             self.response = body
 
     def call(self, message):
+        #ensure_data_events_are_processed(self.channel)
         self.response = None
         self.corr_id = str(uuid.uuid4())
         self.channel.basic_publish(exchange='',
@@ -67,10 +71,13 @@ class RpcChannelClient(object):
                                          reply_to=self.callback_queue,
                                          correlation_id=self.corr_id),
                                    body=message)
+        print "RPC Begin"
         while self.response is None:
             try:
+                sys.stdout.write('.')
                 self.connection.process_data_events()
             # If we lose the connection to the end point just skip
-            except Exception:
-                return ""
+            except Exception as ex:
+                return "Exception: %s" % ex
+        print "RPC Finish"
         return self.response

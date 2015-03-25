@@ -2,6 +2,7 @@
 import datetime
 import calendar
 import urllib
+import urllib2
 import rmq_send
 from time import sleep
 from dsb_parse import parse_departure_list
@@ -58,6 +59,7 @@ def import_departures_from_station(station_id):
     raw_json = import_json(url)
     return unify_stog_and_regional(
         parse_departure_list(raw_json['d']))
+
 
 
 # The S-togs arrival times are given as a time and an offset,
@@ -187,10 +189,13 @@ def countryname_to_country(country_name):
 def dsb_import_departures_from_stations(stations):
     for station in stations:
         with block_signals():
-            rmq_send.send_departures_to_storage(
-                station,
-                import_departures_from_station(
-                    station['Uic']))
+            try:
+                rmq_send.send_departures_to_storage(
+                    station,
+                    import_departures_from_station(
+                        station['Uic']))
+            except (urllib2.HTTPError, urllib2.URLError):
+                print "Connection error when trying to retrieve departures from station: %s" % station
 
         # Lets not ddos DSB :-)
         sleep(2)
@@ -211,4 +216,4 @@ def dsb_import(georesolver):
 
 
 if __name__ == "__main__":
-    main()
+    print import_departures_from_station("7401543")

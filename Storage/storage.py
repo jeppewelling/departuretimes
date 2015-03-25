@@ -41,15 +41,18 @@ def setup_queues():
                   storage_query_queue_name,
                   QueryServiceMessageHandler(data_store).on_message_received)
 
-    # Setup the import service
-    import_service = ImportServiceMessageHandler(data_store, stations_publish_message, departures_publish_message)
-    add_read_only_queue(channel,
-                        storage_import_queue_name,
-                        import_service.on_message_received)
-
     # The exchanges needed for publishing is setup
     declare_exchanges_for_publishing(channel, [departures_exchange, stations_exchange])
 
+
+    # Setup the import service
+    import_service = ImportServiceMessageHandler(data_store, stations_publish_message, departures_publish_message)
+    add_read_only_queue(channel,
+                         storage_import_queue_name,
+                         import_service.on_message_received)
+
+
+    print "Storage ready"
     # Start consuming from the queues
     channel.start_consuming()
 

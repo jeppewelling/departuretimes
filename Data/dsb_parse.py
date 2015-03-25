@@ -61,4 +61,8 @@ def parse_minutes(str_minutes):
         return 0
     if str_minutes == u'½':
         return 0.5
-    return float(str_minutes)
+    try:
+        return float(str_minutes)
+    except Exception:
+        print "Unable to convert: %s to a float." % str_minutes
+        return 0
