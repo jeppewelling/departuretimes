@@ -5,7 +5,9 @@
 # http://www.rabbitmq.com/tutorials/tutorial-six-python.html
 import sys
 import uuid
+
 import pika
+
 #from DepartureTimes.communication.util import ensure_data_events_are_processed
 
 
@@ -37,10 +39,13 @@ class RpcClient(object):
                                          correlation_id=self.corr_id),
                                    body=message)
         while self.response is None:
-            sys.stdout.write('+')
+            #sys.stdout.write('+')
             self.connection.process_data_events()
         return self.response
 
+
+    def close(self):
+        self.connection.close()
 
 
 

@@ -99,7 +99,6 @@ def approximate_search(points, lat, lon, distance):
 
 
 def is_point_nearby(p, span):
-    print "Point: %s" % p
     loc = p[L]
     if LAT not in loc:
         return False
@@ -138,7 +137,6 @@ def get_stations_near(lat, lon, radius, stations):
                              'Name': s['Name'],
                              'Uic': s['Uic']},
                             stations)
-    print "B"
     return filter(
         lambda s: s['Distance'] <= radius,
         station_distances)

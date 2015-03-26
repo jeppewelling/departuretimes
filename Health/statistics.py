@@ -1,98 +1,94 @@
 from __future__ import division
 from Queue import Queue
+
 from Health.data import V, TS, make_measure
+from Loadbalancer.main import number_of_workers
+from Stress.stress_send_query import baseline_average_search_time_ms
 
 
-optimal_search_time_ms = 2
-cnt = 0
+class Statistics(object):
+    def __init__(self):
+        self.optimal_search_time_ms = baseline_average_search_time_ms(2000)
+        print "Baseline search time: %s ms" % self.optimal_search_time_ms
+
+        self.message_count = 0
+        self.mean_x_sum = 0
+        self.mean_y_sum = 0
+        self.mean_x = 0
+        self.mean_y = 0
+        self.mean_length = 1000
+        self.points = Queue(self.mean_length)
+
+        # y = ax + b
+        # where a is slope and b is offset
+        self.current_slope = 0
+        self.current_offset = 0
+
+        # the sum of the measured values minus the optimal value.
+        self.current_integrate = 0
+
+    def print_report(self, m):
+            a = self.current_slope
+            b = self.current_offset
+            i = self.current_integrate
+
+            print "cnt: %s" % self.message_count
+            print "Average search time: %s ms" % self.mean_y
+            print "Average regression line for the last %s points" % self.mean_length
+            print "y = %sx + %s" % (a, b)
+            print "integrate=%s" % i
+            print "point=%s" % m
+            print ""
+            print "Workers: %s" % number_of_workers(self.current_slope, self.current_integrate)
+            print ""
+            print "-----------------------------------------------------------"
+
+    # Called every time a new measure is received
+    def on_new_measure(self, m):
+        self.message_count += 1
+
+        if self.message_count % self.mean_length == 0:
+            self.print_report(m)
+
+        points_lst = list(self.points.queue)
+        self.update_points(m)
+        self.update_mean(m)
+        self.update_slope(points_lst)
+        self.update_integrate(points_lst)
+
+    def update_mean(self, measure):
+        if self.message_count % self.mean_length == 0:
+            self.mean_x_sum = 0
+            self.mean_y_sum = 0
+            self.mean_x = 0
+            self.mean_y = 0
+
+        self.mean_y_sum += measure[V]
+        self.mean_x_sum += measure[TS]
+
+        self.mean_x = self.mean_x_sum / self.mean_length
+        self.mean_y = self.mean_y_sum / self.mean_length
+
+    def update_integrate(self, points_lst):
+        # if cnt % mean_length != 0:
+        # return
+
+        self.current_integrate = 0
+        for p in points_lst:
+            diff = p[V] - self.optimal_search_time_ms
+            self.current_integrate += diff
+            # print "i=%s, v=%s, d=%s" % (current_integrate, p[V], diff)
+
+    def update_points(self, measure):
+        if self.points.full():
+            self.points.get()
+        self.points.put(measure)
+
+    def update_slope(self, points_lst):
+        self.current_slope, self.current_offset = slope(points_lst)
 
 
-def human_readable_state(a):
-    if a > 0:
-        return "Slower"
-    if a < 0:
-        return "Faster"
-    return "Steady"
-
-
-
-def on_new_measure(m):
-    global cnt, points, mean_y, mean_length, current_slope, current_offset, current_integrate
-    cnt += 1
-
-    if cnt % mean_length == 0:
-        a = current_slope
-        b = current_offset
-        i = current_integrate
-
-        print "cnt: %s" % cnt
-        print "Average search time: %s ms" % mean_y
-        print "Average regression line for the last %s points" % mean_length
-        print "y = %sx + %s" % (a, b)
-        print "integrate=%s" % i
-        print ""
-        print "Prediction: %s" % human_readable_state(a)
-        print ""
-        print "-----------------------------------------------------------"
-
-    points_lst = list(points.queue)
-    update_points(m)
-    update_mean(m)
-    update_slope(points_lst)
-    update_integrate(points_lst)
-
-
-
-
-mean_x_sum = 0
-mean_y_sum = 0
-mean_x = 0
-mean_y = 0
-mean_length = 200
-
-
-def update_mean(measure):
-    global mean_x, mean_y, mean_x_sum, mean_y_sum, mean_length, cnt
-    if cnt % mean_length == 0:
-        mean_x_sum = 0
-        mean_y_sum = 0
-        mean_x = 0
-        mean_y = 0
-
-    mean_y_sum += measure[V]
-    mean_x_sum += measure[TS]
-
-    mean_x = mean_x_sum / mean_length
-    mean_y = mean_y_sum / mean_length
-
-
-# Linear regression over points
-
-# a = Sum^n_i{x_i * y_i - n * xl * yl } / Sum^n_i{x^2_i - n * xl^2 }
-#
-# Where xl and yl are the mean values of x and y
-
-points = Queue(mean_length)
-
-
-def update_points(measure):
-    global points
-    if points.full():
-        points.get()
-    points.put(measure)
-
-# y = ax + b
-# where a is slope and b is offset
-current_slope = 0
-current_offset = 0
-
-
-def update_slope(points_lst):
-    global current_slope, current_offset
-    current_slope, current_offset = slope(points_lst)
-
-
-# a more generic sum function
+# a generic sum function with a selector closure
 def sum_(func, list):
     return reduce(lambda acc, x: func(x) + acc, list, 0)
 
@@ -102,6 +98,11 @@ def mean(func, points):
     return sum_(func, points) / len(points)
 
 
+# Linear regression over points
+
+# a = Sum^n_i{x_i * y_i - n * xl * yl } / Sum^n_i{x^2_i - n * xl^2 }
+#
+# Where xl and yl are the mean values of x and y
 def slope(points_lst):
     n = len(points_lst)
     xl = mean(lambda m: m[TS], points_lst)
@@ -124,57 +125,16 @@ def slope(points_lst):
     return a, b
 
 
-current_integrate = 0
+
+def human_readable_state(a):
+    if a > 0:
+        return "Slower"
+    if a < 0:
+        return "Faster"
+    return "Steady"
 
 
-def update_integrate(points_lst):
-    global current_integrate, current_slope, current_offset, optimal_search_time_ms
-    current_integrate = integrate(points_lst, current_slope, current_offset, optimal_search_time_ms)
 
-
-def integrate(points_lst, a, b, y_optimal):
-    if len(points_lst) < 2:
-        return 0
-
-    first_x = points_lst[0][TS]
-    last_x = points_lst[len(points_lst) - 1][TS]
-
-    # Integrate: Calculate the area under the aggression line
-    # above the optimal search line.
-    # i.e. the triangle spanned by s, t, u below:
-    #
-    # ^
-    # |           u       (drifting search times)
-    # |         / |
-    # |       /   |
-    # |     /     |
-    # |----s------t------- optimal search time
-    # |
-    # -------------------------------> x
-    #
-
-    # Calculate the aggression lines intersection with the y_optimal
-    # y = ax + b
-    # y_optimal = ax + b
-    # x = (y_optimal - b) / a
-
-    # If a is zero we have a box area
-    if a == 0:
-        return (last_x - first_x) * (b - y_optimal)
-
-    s_x = (y_optimal - b) / a
-
-    u_x = last_x
-    u_y = a * u_x + b
-
-    t_x = u_x
-    t_y = y_optimal
-
-    st = t_x - s_x
-    tu = u_y - t_y
-    area = st * tu * 0.5
-
-    return area
 
 
 if __name__ == '__main__':
@@ -184,6 +144,6 @@ if __name__ == '__main__':
           make_measure(4, 2)]
 
     a, b = slope(ps)
-    i = integrate(ps, a, b)
 
-    print "y = %sx + %s\ndiff=%s\nintegrate=%s" % (a, b, a, i)
+    print "y = %sx + %s\ndiff=%s" % (a, b, a)
+

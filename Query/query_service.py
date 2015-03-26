@@ -4,7 +4,7 @@ from DepartureTimes.communication.queues import query_queue_name
 from DepartureTimes.communication.rpc_client import RpcClient
 from Health.data import now_ms
 
-from Health.health import health_check_search_time
+from Health.health_client import health_check_search_time
 from Query.setup_rmq import RmqSetup
 from search import search
 
@@ -19,10 +19,14 @@ def main():
 rpc = RpcClient(query_queue_name)
 def find_departures(lat, lon, radius):
     start = now_ms()
-    result = json.loads(rpc.call(encode_message(lat, lon, radius)))
+    result = find_departures_no_health_logging(lat, lon, radius)
     end = now_ms()
-    health_check_search_time(end - start)
+    diff = end - start
+    health_check_search_time(diff)
     return result
+
+def find_departures_no_health_logging(lat, lon, radius):
+    return json.loads(rpc.call(encode_message(lat, lon, radius)))
 
 def encode_message(lat, lon, radius):
     req = {'Lat': lat, 'Lon': lon, 'RadiusKm': radius}
@@ -81,7 +85,7 @@ class QueryService(object):
         self.stations_cache = parsed
 
 
-    # This method is called by the RpcServer thread waiting for requests.
+    # This method is called by the RpcServer waiting for requests.
     def on_message_received(self, request):
         if request == "": return
         request = json.loads(request)

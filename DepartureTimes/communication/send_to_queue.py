@@ -22,3 +22,5 @@ def send(queue_name, data):
                               delivery_mode=2,  # make message persistent
                           ))
     connection.close()
+
+

@@ -1,10 +1,10 @@
 import json
 from django.http import HttpResponse
-from send_query import send_to_query_handler
+from send_query import find_departures
 
 
 def query(request, lat, lon, radius):
-    result = send_to_query_handler(lat, lon, radius)
+    result = find_departures(lat, lon, radius)
 
     return HttpResponse(
         json.dumps(result),

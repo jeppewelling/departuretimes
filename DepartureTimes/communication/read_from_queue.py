@@ -19,9 +19,9 @@ class RmqReader(object):
             self.connect()
 
     def connect(self):
-        connection = pika.BlockingConnection(pika.ConnectionParameters(
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(
             host='localhost'))
-        self.channel = connection.channel()
+        self.channel = self.connection.channel()
         self.channel.queue_declare(queue=self.queue_name, durable=True)
         self.channel.basic_consume(self.on_request,
                                    queue=self.queue_name,
