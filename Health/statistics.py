@@ -2,21 +2,26 @@ from __future__ import division
 from Queue import Queue
 
 from Health.data import V, TS, make_measure
-from Loadbalancer.main import number_of_workers
+from Loadbalancer.main import number_of_workers, LoadBalancer
 from Stress.stress_send_query import baseline_average_search_time_ms
 
 
 class Statistics(object):
     def __init__(self):
-        self.optimal_search_time_ms = baseline_average_search_time_ms(2000)
+        # Lets set the base line a bit higher than measured.
+        # This way we will get a negative value of the summed integration
+        # when the search time is optimal.
+        self.optimal_search_time_ms = baseline_average_search_time_ms(2000) * 2
         print "Baseline search time: %s ms" % self.optimal_search_time_ms
+
+        self.load_balancer = LoadBalancer()
 
         self.message_count = 0
         self.mean_x_sum = 0
         self.mean_y_sum = 0
         self.mean_x = 0
         self.mean_y = 0
-        self.mean_length = 1000
+        self.mean_length = 2000
         self.points = Queue(self.mean_length)
 
         # y = ax + b
@@ -43,18 +48,25 @@ class Statistics(object):
             print ""
             print "-----------------------------------------------------------"
 
+
     # Called every time a new measure is received
     def on_new_measure(self, m):
         self.message_count += 1
 
         if self.message_count % self.mean_length == 0:
+            points_lst = list(self.points.queue)
+            self.update_slope(points_lst)
+
+
+            self.load_balancer.on_update_workers(self.current_slope, self.current_integrate)
             self.print_report(m)
 
-        points_lst = list(self.points.queue)
+
+
         self.update_points(m)
         self.update_mean(m)
-        self.update_slope(points_lst)
-        self.update_integrate(points_lst)
+
+        self.update_integrate(m)
 
     def update_mean(self, measure):
         if self.message_count % self.mean_length == 0:
@@ -62,6 +74,7 @@ class Statistics(object):
             self.mean_y_sum = 0
             self.mean_x = 0
             self.mean_y = 0
+            self.current_integrate = 0
 
         self.mean_y_sum += measure[V]
         self.mean_x_sum += measure[TS]
@@ -69,15 +82,10 @@ class Statistics(object):
         self.mean_x = self.mean_x_sum / self.mean_length
         self.mean_y = self.mean_y_sum / self.mean_length
 
-    def update_integrate(self, points_lst):
-        # if cnt % mean_length != 0:
-        # return
+    def update_integrate(self, p):
+        diff = p[V] - self.optimal_search_time_ms
+        self.current_integrate += diff
 
-        self.current_integrate = 0
-        for p in points_lst:
-            diff = p[V] - self.optimal_search_time_ms
-            self.current_integrate += diff
-            # print "i=%s, v=%s, d=%s" % (current_integrate, p[V], diff)
 
     def update_points(self, measure):
         if self.points.full():

@@ -30,7 +30,7 @@ def health_message_handler(message):
     health_measure = health[M]
 
     statistics.on_new_measure(health_measure)
-    write_to_log(health_type, health_measure)
+    #write_to_log(health_type, health_measure)
 
 
 def write_to_log(kind, measure):
