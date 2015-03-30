@@ -12,6 +12,8 @@ def find_departures(lat, lon, radius):
     rpc = RpcClient(query_queue_name)
     #health.begin_search_time_measure()
     res = json.loads(rpc.call(encode_message(lat, lon, radius)))
+
+    # TODO sending health status wont work on apache deployment!
     #health.end_search_time_measure()
     rpc.close()
     health.close()

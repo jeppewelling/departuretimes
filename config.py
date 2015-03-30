@@ -1,1 +1,3 @@
-QUERY_WORKER_PATH = "/home/jwh/projects/departuretimes/run_query.py"
+
+QUERY_WORKER_PATH = "/srv/departuretimes/run_query.py"
+GEO_LOCATONS_PLACES = "/srv/departuretimes/places_location.json"

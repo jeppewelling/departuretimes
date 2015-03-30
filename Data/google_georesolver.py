@@ -5,6 +5,7 @@ from os.path import isfile
 from urllib import urlencode
 
 from Data.json_url_import import import_json
+from config import GEO_LOCATONS_PLACES
 
 
 P = u'Place'
@@ -18,7 +19,7 @@ M = u'Message'
 api_url = "https://maps.googleapis.com/maps/api/geocode/json?%s"\
           "&key=AIzaSyBW43vhEDudt_ZEaIlF7-bBKPeSNGW9D-s"
 
-places_file = "./places_location.json"
+places_file = GEO_LOCATONS_PLACES
 
 
 class GoogleGeoResolver(object):
