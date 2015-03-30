@@ -12,6 +12,7 @@ def find_departures(lat, lon, radius):
     health.begin_search_time_measure()
     res = json.loads(rpc.call(encode_message(lat, lon, radius)))
     health.end_search_time_measure()
+    rpc.close()
     return res
 
 
