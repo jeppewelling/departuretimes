@@ -9,7 +9,7 @@ sudo service apache2 restart
 
 echo "Installing Django..."
 wget https://bootstrap.pypa.io/get-pip.py
-python get-pip.py
+sudo python get-pip.py
 sudo pip install Djang
 sudo pip install pika
 
@@ -42,7 +42,7 @@ sudo service apache2 reload
 
 # Stup the services 
 cd deamon
-./make_deamons.sh
+sudo ./make_deamons.sh
 
 sudo mv storage_service /etc/init.d/
 sudo chmod 755 /etc/init.d/storage_service
@@ -69,18 +69,18 @@ sudo update-rc.d health_service defaults
 sudo service rabbitmq-server restart
 
 # The storage service is responsible for storing data
-service storage_service start
+sudo service storage_service start
 
 # The Query service is responseible for performing calculations on the
 # data
-service query_service start
+sudo service query_service start
 
 # The data import service is responsible for importing data from the
 # external data providers, in this case only DSB.
-service data_service start
+sudo service data_service start
 
 # Responsible for monitoring the sysetm as it is running
-service health_service start
+sudo service health_service start
 
 
 
