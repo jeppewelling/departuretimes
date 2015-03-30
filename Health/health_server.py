@@ -2,7 +2,7 @@
 
 # Start consuming on the health queue.
 import json
-from DepartureTimes.communication.interrupt_handler import exception_handler
+
 from DepartureTimes.communication.queues import health_queue_name
 from DepartureTimes.communication.read_from_queue import RmqReader
 from Health.data import T, M, TS, V
@@ -12,13 +12,21 @@ from Stress.stress_send_query import baseline_average_search_time_ms
 
 searchTimeLogFile = "./Health/data/health_%s.log"
 
-statistics = Statistics()
+
+statistics = None
 
 def main():
+
     #exception_handler(start_health_service)
     start_health_service()
 
 def start_health_service():
+    global statistics
+
+    mean_length = 4
+    baseline = baseline_average_search_time_ms(mean_length) * 2
+    statistics = Statistics(mean_length, baseline)
+
     reader = RmqReader(health_queue_name, health_message_handler)
     reader.start_consuming()
 

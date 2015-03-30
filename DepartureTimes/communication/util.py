@@ -24,13 +24,3 @@ def add_rpc_server_queue(channel, queue_name, message_handler):
                               queue=queue_name)
 
 
-#
-# message_counter = 0
-#
-# # A minor hack to keep the RMQ connection alive, see:
-# # https://github.com/pika/pika/issues/397
-# def ensure_data_events_are_processed(channel):
-#     global message_counter
-#     message_counter += 1
-#     if message_counter % 100 == 0:
-#         channel.proces_data_events()

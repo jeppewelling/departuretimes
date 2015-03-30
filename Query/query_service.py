@@ -1,10 +1,8 @@
 import json
-import time
+
+from DepartureTimes.communication.health_client_rmq import HealthClient
 from DepartureTimes.communication.queues import query_queue_name
 from DepartureTimes.communication.rpc_client import RpcClient
-from Health.data import now_ms
-
-from Health.health_client import health_check_search_time
 from Query.setup_rmq import RmqSetup
 from search import search
 
@@ -17,12 +15,11 @@ def main():
 # The public entry to searching
 # Posts an entry in the search queue: "query_queue"
 rpc = RpcClient(query_queue_name)
+health = HealthClient()
 def find_departures(lat, lon, radius):
-    start = now_ms()
+    health.begin_search_time_measure()
     result = find_departures_no_health_logging(lat, lon, radius)
-    end = now_ms()
-    diff = end - start
-    health_check_search_time(diff)
+    health.end_search_time_measure()
     return result
 
 def find_departures_no_health_logging(lat, lon, radius):
@@ -31,8 +28,6 @@ def find_departures_no_health_logging(lat, lon, radius):
 def encode_message(lat, lon, radius):
     req = {'Lat': lat, 'Lon': lon, 'RadiusKm': radius}
     return json.dumps(req)
-
-
 
 
 # setup the RMQ subscription / RPC

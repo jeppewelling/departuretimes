@@ -1,12 +1,17 @@
+# The query service is capable of:
+# - Requesting the storage
+# - Listening to updates from the storage
+# - Listening to query requests from users
+
 import json
-from time import sleep
 import traceback
 import pika
-from DepartureTimes.communication.interrupt_handler import rpc_exception_handler
+
 from DepartureTimes.communication.rpc_client import RpcChannelClient
 from DepartureTimes.communication.util import add_rpc_server_queue
 from DepartureTimes.communication.queues import storage_query_queue_name, query_queue_name
 from DepartureTimes.communication.queues import departures_exchange, stations_exchange
+
 
 class RmqSetup(object):
     # Input: a list of {ExchangeName: e, MessageHandler: m}

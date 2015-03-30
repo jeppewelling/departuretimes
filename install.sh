@@ -44,21 +44,45 @@ sudo service apache2 reload
 cd deamon
 ./make_deamons.sh
 
-sudo mv storage_service /etc/init.d/storage_service
+sudo mv storage_service /etc/init.d/
 sudo chmod 755 /etc/init.d/storage_service
-sudo chmod 755 /srv/departuretimes/start_storage.sh
+sudo chmod 755 /srv/departuretimes/run_storage.py
 sudo update-rc.d storage_service defaults
 
-sudo mv query_service /etc/init.d/query_service
+sudo mv query_service /etc/init.d/
 sudo chmod 755 /etc/init.d/query_service
-sudo chmod 755 /srv/departuretimes/start_query.sh
+sudo chmod 755 /srv/departuretimes/run_query.py
 sudo update-rc.d query_service defaults
 
-sudo mv data_service /etc/init.d/data_service
+sudo mv data_service /etc/init.d/
 sudo chmod 755 /etc/init.d/data_service
-sudo chmod 755 /srv/departuretimes/start_data.sh
+sudo chmod 755 /srv/departuretimes/run_data.py
 sudo update-rc.d data_service defaults
 
+sudo mv health_service /etc/init.d/
+sudo chmod 755 /etc/init.d/health_service
+sudo chmod 755 /srv/departuretimes/run_health.py
+sudo update-rc.d health_service defaults
 
 # Start the departuretime services
-# TODO ... 
+# Restart the rabbit mq to clear up any queues.
+sudo service rabbitmq-server restart
+
+# The storage service is responsible for storing data
+service storage_service start
+
+# The Query service is responseible for performing calculations on the
+# data
+service query_service start
+
+# The data import service is responsible for importing data from the
+# external data providers, in this case only DSB.
+service data_service start
+
+# Responsible for monitoring the sysetm as it is running
+service health_service start
+
+
+
+
+

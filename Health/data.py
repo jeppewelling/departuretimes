@@ -22,6 +22,8 @@ def make_measure( v):
     ts = now_ms() - initial_time
     return {TS: ts, V: v}
 
+def make_fixed_measure(x, y):
+    return {TS: x, V: y}
 
 def make_health_state(t, m):
     return {T: t, M: m, }

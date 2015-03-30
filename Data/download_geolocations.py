@@ -1,7 +1,11 @@
 import urllib
-import zipfile,os.path
+import zipfile
 import os.path
-import city_location_import
+import os.path
+
+from Data import city_location_import
+
+
 
 # Thanks to:
 # http://stackoverflow.com/questions/19602931/basic-http-file-downloading-and-saving-to-disk-in-python

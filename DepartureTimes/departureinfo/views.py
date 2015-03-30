@@ -1,6 +1,7 @@
 import json
+
 from django.http import HttpResponse
-from send_query import find_departures
+from setup_rmq import find_departures
 
 
 def query(request, lat, lon, radius):

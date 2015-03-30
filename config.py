@@ -1,0 +1,1 @@
+QUERY_WORKER_PATH = "/home/jwh/projects/departuretimes/run_query.py"

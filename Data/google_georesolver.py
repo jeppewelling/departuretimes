@@ -2,9 +2,10 @@ from time import sleep
 import json
 import codecs
 from os.path import isfile
-import urllib
-from json_url_import import import_json
 from urllib import urlencode
+
+from Data.json_url_import import import_json
+
 
 P = u'Place'
 C = u'Country'

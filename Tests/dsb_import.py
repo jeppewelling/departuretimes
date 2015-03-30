@@ -1,8 +1,9 @@
 import unittest
-from Data.dsb_import import add_geo_locations_to_place,\
-    add_geo_locations_to_places\
-    import_stations
+from Data.dsb_import import add_geo_locations_to_place, add_geo_locations_to_places
+
 from Data.google_georesolver import GoogleGeoResolver
+
+
 
 
 class TestDsbImport(unittest.TestCase):
@@ -62,8 +63,8 @@ class TestDsbImport(unittest.TestCase):
         result = add_geo_locations_to_places(places, georesolver)
         self.assertEqual([{'Name': "Sorgenfri",
                            'Country': "Denmark",
-                           u"Location": {u'Lat': 55.78263,
-                                         u'Lon': 12.49044}}],
+                           u"Location": {u'Lat': 55.7812551,
+                                         u'Lon': 12.4835422}}],
                          result)
 
 

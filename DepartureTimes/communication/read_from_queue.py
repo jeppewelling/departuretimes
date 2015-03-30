@@ -9,14 +9,14 @@ class RmqReader(object):
         self.consuming_started = False
         self.queue_name = queue_name
         self.message_handler = message_handler
-        try:
-            self.connect()
-        except Exception as ex:
-            sleep_time = 10
-            print "Received exception: %s, reconnecting in: %s seconds"\
-                % (ex, sleep_time)
-            sleep(sleep_time)
-            self.connect()
+        # try:
+        self.connect()
+        # except Exception as ex:
+        #     sleep_time = 10
+        #     print "Received exception: %s, reconnecting in: %s seconds"\
+        #         % (ex, sleep_time)
+        #     sleep(sleep_time)
+        #     self.connect()
 
     def connect(self):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(

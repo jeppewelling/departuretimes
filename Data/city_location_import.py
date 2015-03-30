@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import csv
-import download_geolocations
+
+from Data import download_geolocations
+
 
 file_path = "/srv/departuretimes/Data/data/GeoLiteCity_20150106/GeoLiteCity_20150106/GeoLiteCity-Location.csv"
 

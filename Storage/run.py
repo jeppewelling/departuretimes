@@ -1,4 +1,4 @@
-from storage import main
+from Storage.storage import main
 
 
 def run():
