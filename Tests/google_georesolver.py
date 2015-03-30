@@ -58,11 +58,3 @@ def to_unicode(str, verbose=False):
     return u
 
 
-def countryname_to_country(country_name):
-    if country_name == "S":
-        return u"Sweden"
-    if country_name == "DK":
-        return u"Denmark"
-    return ""
-
-

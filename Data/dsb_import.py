@@ -143,9 +143,18 @@ def add_geo_locations_to_place(place, georesolver):
 
 # Input: S, station
 def convert_to_place(s):
-    return {u"Country": countryname_to_country(s['CountryName']),
+    return {u"Country": country_name_to_country(s['CountryName']),
             u"Uic": s['UIC'],
             u"Name": s['Name']}
+
+
+def country_name_to_country(country_name):
+    if country_name == "S":
+        return u"Sweden"
+    if country_name == "DK":
+        return u"Denmark"
+    return ""
+
 
 
 def dsb_import_departures_from_stations(stations):

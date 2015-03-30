@@ -23,6 +23,8 @@ http://89.221.166.70/location=56.1500,10.2167,10
 Deployment
 - Installing
 
+
+
  - By default the install script will place the departuretime app in: /srv/departuretimes
 
       You might want to change the settings in the wsgi configuration file for
@@ -31,6 +33,7 @@ Deployment
 
   - To install and setup the DepartureTime project, download the install.sh file and run:
 
+  $ wget https://raw.githubusercontent.com/jeppewelling/departuretimes/master/install.sh
   $ bash install.sh
 
 
