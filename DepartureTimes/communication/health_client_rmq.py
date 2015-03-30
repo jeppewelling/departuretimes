@@ -18,7 +18,7 @@ class HealthClient(object):
 
         self.buffer = []
         self.cnt = 0
-        self.threshold = 4
+        self.threshold = 0
 
         self.connect()
         self.begin_search_time = 0
