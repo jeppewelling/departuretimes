@@ -41,13 +41,13 @@ def parse_optional_number(str_number):
 def parse_datetime(str_datetime):
     if str_datetime == None:
         return None
-
+    return datetime_str_to_int(str_datetime)
     # Convert the time to utc time
-    parsed = datetime.datetime.fromtimestamp(datetime_str_to_int(str_datetime))
-    local = pytz.timezone ("Europe/Copenhagen")
-    local_dt = local.localize(parsed, is_dst=None)
-    utc_dt = local_dt.astimezone (pytz.utc)
-    return utc_dt
+    # parsed = datetime.datetime.fromtimestamp(datetime_str_to_int(str_datetime))
+    # local = pytz.timezone ("Europe/Copenhagen")
+    # local_dt = local.localize(parsed, is_dst=None)
+    # utc_dt = local_dt.astimezone (pytz.utc)
+    # return utc_dt
 
     # Seems like the time send to us by DSB has one hour added
     # We have set timezone to Europe / Copenhagen

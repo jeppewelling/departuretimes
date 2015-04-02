@@ -45,11 +45,11 @@ def get_station_query(station_id):
 # datetime * minutes -> datetime
 def add_minutes(dt, m):
     seconds = m * 60
-    return dt + datetime.timedelta(seconds=seconds)
+    return dt + seconds
 
 
 def add_seconds(dt, s):
-    return dt + datetime.timedelta(seconds=s)
+    return dt + s
 
 
 # Imports the list of departures from a given station.
@@ -82,10 +82,7 @@ def strip_unused_fields_and_update_scheduleddeparture(
             'Track': departure['Track'],
             'Type': 'Train',
 
-            # A calculated departure time (considers delay and
-            # unifies regional trains with s-trains) Convert
-            # DepartureTime to Unix time stamp
-            'DepartureTime': calendar.timegm(departure_time.utctimetuple()),
+            'DepartureTime': departure_time,
 
             # S-tog
             'Direction': departure['Direction']}
