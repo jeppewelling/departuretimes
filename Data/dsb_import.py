@@ -58,6 +58,7 @@ def import_departures_from_station(station_id):
     q = get_station_query(station_id)
     url = dsb_queue_url + q
     raw_json = import_json(url)
+    print raw_json
     return unify_stog_and_regional(
         parse_departure_list(raw_json['d']))
 
@@ -187,4 +188,4 @@ def dsb_import(georesolver):
 
 
 if __name__ == "__main__":
-    print import_departures_from_station("7401543")
+    print import_departures_from_station("8600956")

@@ -3,12 +3,11 @@
 
 # Using RMQ RPC:
 # http://www.rabbitmq.com/tutorials/tutorial-six-python.html
+
 import sys
 import uuid
-
 import pika
 
-#from DepartureTimes.communication.util import ensure_data_events_are_processed
 
 
 class RpcClient(object):
@@ -29,7 +28,6 @@ class RpcClient(object):
             self.response = body
 
     def call(self, message):
-        #ensure_data_events_are_processed(self.channel)
         self.response = None
         self.corr_id = str(uuid.uuid4())
         self.channel.basic_publish(exchange='',

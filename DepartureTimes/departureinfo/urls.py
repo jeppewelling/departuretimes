@@ -4,6 +4,9 @@ from departureinfo import views
 
 urlpatterns = patterns('',
                        (r'^$', TemplateView.as_view(template_name='frontend.html')),
-                       url(r'^location=(?P<lat>\d+\.\d+),(?P<lon>\d+\.\d+),(?P<radius>\d+([\.]\d+)?)$', 
+                       url(r'^location/(?P<lat>\d+\.\d+),(?P<lon>\d+\.\d+),(?P<radius>\d+([\.]\d+)?)$',
                            views.query, name='query'),
+                       url(r'^places$',
+                           views.places, name='places'),
+
                    )

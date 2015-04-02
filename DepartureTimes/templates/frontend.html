@@ -4,12 +4,36 @@
   <head>
     <meta charset="utf-8">
     <title>DeparetureTimes</title>
-  </head>
-  <body>
-    <script src="{% static "departureinfo/jquery-2.1.3.js" %}"></script>
+     <script src="{% static "departureinfo/jquery-2.1.3.js" %}"></script>
     <script src="{% static "departureinfo/underscore.js" %}"></script>
     <script src="{% static "departureinfo/backbone.js" %}"></script>
+    <!--<script src="{% static "departureinfo/departuretimes.js" %}"></script>-->
     <script src="{% static "departureinfo/departuretimes.js" %}"></script>
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBW43vhEDudt_ZEaIlF7-bBKPeSNGW9D-s"></script>
+
+  </head>
+  <body>
+
+
+    <div id="departureTimesApplication">
+        <div id="departureLocationsMap"></div>
+        <hr>
+        <div id="places"></div>
+        <div id="departureLocationsList"></div>
+    </div>
+
+
+      <!-- Templates -->
+
+      <script type="text/template" id="departure-location-template">
+        <div class="view">
+          <%- DepartureTime %>
+          <img src="/static/departureinfo/images/<%- Icon %>">
+          <%- StationName %>
+          (<%- Distance %> km)
+              <span style="font-size:25px">&#8594;</span>
+          <%- DestinationName %>
+       </div>
+      </script>
   </body>
 </html>

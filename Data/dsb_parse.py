@@ -72,3 +72,6 @@ def parse_minutes(str_minutes):
     except Exception:
         print "Unable to convert: %s to a float." % str_minutes
         return 0
+
+if __name__ == '__main__':
+    print parse_datetime("/Date(1427752800000)/")
