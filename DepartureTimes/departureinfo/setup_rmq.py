@@ -10,13 +10,12 @@ from communication.queues import query_queue_name
 def find_departures(lat, lon, radius):
     health = HealthClient()
     rpc = RpcClient(query_queue_name)
-    #health.begin_search_time_measure()
-    res = json.loads(rpc.call(encode_message(lat, lon, radius)))
 
-    # TODO sending health status wont work on apache deployment!
-    #health.end_search_time_measure()
+    health.begin_search_time_measure()
+    res = json.loads(rpc.call(encode_message(lat, lon, radius)))
     rpc.close()
-    health.close()
+
+    health.end_search_time_measure()
     return res
 
 

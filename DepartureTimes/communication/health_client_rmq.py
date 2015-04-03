@@ -15,40 +15,29 @@ class HealthClient(object):
         self.connection = None
         self.channel = None
         self.queue_name = health_queue_name
-
-        self.buffer = []
-        self.cnt = 0
-        self.threshold = 0
-
-        self.connect()
         self.begin_search_time = 0
-
 
     def connect(self):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(
             host='localhost'))
         self.channel = self.connection.channel()
+        # Takes a relative long time to do...
+        # Maybe we should consider moving this out in a separate method
         self.channel.queue_declare(queue=self.queue_name, durable=True)
-
 
     def begin_search_time_measure(self):
         self.begin_search_time = now_ms()
 
     def end_search_time_measure(self):
+        self.connect();
         diff = now_ms() - self.begin_search_time
-        self.health_check(SearchTime, diff)
+        self.send_health_status(SearchTime, diff)
+        self.close()
 
-
-    # Only send health messages once in a while
-    def health_check(self, kind, measured_value):
-        self.cnt += 1
+    def send_health_status(self, kind, measured_value):
         m = make_measure(measured_value)
         health = make_health_state(kind, m)
-        self.buffer.append(json.dumps(health))
-        if self.cnt % self.threshold == 0:
-            for m in self.buffer:
-                self.send(m)
-            self.buffer = []
+        self.send(json.dumps(health))
 
     def send(self, data):
         self.channel.basic_publish(exchange='',
