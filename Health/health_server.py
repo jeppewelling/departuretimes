@@ -8,9 +8,10 @@ from DepartureTimes.communication.read_from_queue import RmqReader
 from Health.data import T, M, TS, V
 from Health.statistics import Statistics
 from Stress.stress_send_query import baseline_average_search_time_ms
+from config import HEALTH_LOG
 
 
-searchTimeLogFile = "./Health/data/health_%s.log"
+searchTimeLogFile = HEALTH_LOG
 
 
 statistics = None
@@ -24,7 +25,10 @@ def start_health_service():
     global statistics
 
     mean_length = 4
-    baseline = baseline_average_search_time_ms(mean_length) * 2
+    #baseline = baseline_average_search_time_ms(mean_length) * 2
+    # The expected time for a search request to enter the query queue in the apache application
+    # and until it has been processed and returned (in ms):
+    baseline = 50
     statistics = Statistics(mean_length, baseline)
 
     reader = RmqReader(health_queue_name, health_message_handler)
@@ -38,7 +42,7 @@ def health_message_handler(message):
     health_measure = health[M]
 
     statistics.on_new_measure(health_measure)
-    #write_to_log(health_type, health_measure)
+    write_to_log(health_type, health_measure)
 
 
 def write_to_log(kind, measure):
