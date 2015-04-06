@@ -26,7 +26,7 @@ http://89.221.166.70/location/56.1500,10.2167,10
    departuretimes.dk and it should be possible to access the webservice locally.
    Alternatively change the wsgi settings file located in /etc/apache2/sites-available/departuretimes.dk.conf
 
-  - To install and setup the DepartureTime project, download the install.sh file and run:
+  - To install and setup the DepartureTime project, execute the two commands:
 
   $ wget https://raw.githubusercontent.com/jeppewelling/departuretimes/master/install.sh
   $ sudo bash install.sh
