@@ -29,7 +29,7 @@ http://89.221.166.70/location/56.1500,10.2167,10
   - To install and setup the DepartureTime project, download the install.sh file and run:
 
   $ wget https://raw.githubusercontent.com/jeppewelling/departuretimes/master/install.sh
-  $ bash install.sh
+  $ sudo bash install.sh
 
 
 - Run
@@ -49,6 +49,8 @@ http://89.221.166.70/location/56.1500,10.2167,10
    run_health.py
    run_query.py
    run_storage.py
+
+   After installing the system, it takes about 5 to 10 minutes before the initial data has been imported from DSB.
 
 
 Back-end
@@ -81,6 +83,24 @@ Technical choices and architecture
   See diagram.pdf:
   https://github.com/jeppewelling/departuretimes/blob/master/diagram.pdf
 
+  - The health service
+        is responsible for logging information about the system health,
+        currently it only tracks the time it takes for a search to pass through the web-application
+        and be returned to the end user.
+        The health service contains a PID algorithm that determines if additional query-service workers
+        should be spawned to help consume search requests.
+
+  - The Query service
+        is responseible for carrying out the actual searches in the data received from the store.
+
+  - The Data store service
+        is responsible for keeping track of all incoming data from the data providers.
+        It broadcasts the data to the query service(s) that has subscribed to the storage services data feed.
+
+  - The Data service
+        is responsible for importing data from the data providers and adding geo-locations to these data.
+        It ensures that the data are requested in a fair way, avoiding DoS.
+
 
   The services depicted in the diagram are glued together with RabbitMQ.
   I decided to have the components coupled together as loosely as possible
@@ -100,27 +120,27 @@ Technical choices and architecture
    
    The Data store only keeps data in memory and its only task is to gather
    data from the data imports and publish this data to the Query services.
-
-   The paring of geo locations with train stations is done through
-   Googles georesolver.
+   At first it might seem a bit naive, but on the other hand, the nature of
+   the system is to continuously request data, so data never get old and we
+   are not interested in old data any way.
 
 
  - Left out 
    - Persisting data,
    - proper automated testing,
-
+   - Administration module for monitoring the system,
+   - Logging of exceptions,
+   - Logging of system relevant informations - i.e. did some service break down?
+   - No plan B for messaging, if RabbitMQ breakes down all fails,
+   - No load balancing for the web application,
+   - Additional traffic feeds (Rejsepnanen's feed),
 
  - What could be done differently
- 
+    Internally I represent data purely as dictionaries which has a close resemblance with the JSON format,
+    but I should probably have modelled this as a class with a "convertToJson" method.
 
    
 
-Link to other code of pride
-
-
-Link to resume or public profile
-
-
-Link to hosted application 
+Link to hosted application
 
 http://89.221.166.70/
