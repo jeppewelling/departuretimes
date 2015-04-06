@@ -6,6 +6,7 @@
 import json
 import traceback
 import pika
+from DepartureTimes.communication.interrupt_handler import rpc_exception_handler
 
 from DepartureTimes.communication.rpc_client import RpcChannelClient
 from DepartureTimes.communication.util import add_rpc_server_queue
@@ -19,8 +20,6 @@ class RmqSetup(object):
         self.query_service = query_service
         self.connect()
 
-        self.channel.add_on_close_callback(self.on_channel_closed)
-
 
     def connect(self):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(
@@ -29,7 +28,6 @@ class RmqSetup(object):
 
         # enable the query to make RPCs on the storage
         self.rpc_storage = RpcChannelClient(self.connection, self.channel, storage_query_queue_name)
-
 
         # A helper for subscribing to an exchange
         def subscribe_to_exchange(exchange_name, message_handler):
@@ -56,32 +54,20 @@ class RmqSetup(object):
 
 
 
-    def on_channel_closed(self, channel, reply_code, reply_text):
-        print "channel reconnect"
-
-
-
     def fetch_stations_from_storage(self):
         q = {'type': "get_stations"}
         self.query_service.update_stations(self.rpc_storage.call(json.dumps(q)))
 
 
+
     def fetch_all_departures_from_storage(self):
         q = {'type': "get_all_departures", 'data': []}
+        # If the storage service is offline, we get a time out and nothing is returned.
+        # Once the storage service is online, it will send the data to us.
         self.query_service.update_departures(self.rpc_storage.call(json.dumps(q)))
 
 
     def start_listening(self):
-        #with rpc_exception_handler():
-        try:
-            print ' [Query] Waiting for messages...'
-            self.channel.start_consuming()
-
-        # On exception lets just try once to reconnect else let it crash
-        # TODO send health information about this crash
-        except Exception as ex:
-            print "RMQ error, trying to reconnect..."
-            traceback.print_exc()
-            self.connect()
+        with rpc_exception_handler():
             self.channel.start_consuming()
 

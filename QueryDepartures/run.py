@@ -1,4 +1,4 @@
-from Query.query_service import main
+from QueryDepartures.query_service import main
 
 
 def run():
@@ -7,3 +7,4 @@ def run():
 
 if __name__ == "__main__":
     run()
+

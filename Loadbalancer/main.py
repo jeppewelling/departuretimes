@@ -1,5 +1,5 @@
 # Given the slope of the average line of the search times and the sum of the times above the baseline,
-# return a number of Query workers.
+# return a number of QueryDepartures workers.
 from Queue import Queue
 import time
 import subprocess

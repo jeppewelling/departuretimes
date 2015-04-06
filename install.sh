@@ -12,7 +12,6 @@ wget https://bootstrap.pypa.io/get-pip.py
 sudo python get-pip.py
 sudo pip install Django
 sudo pip install pika
-sudo pip install pytz
 
 
 
@@ -72,7 +71,7 @@ sudo service rabbitmq-server restart
 # The storage service is responsible for storing data
 sudo service storage_service start
 
-# The Query service is responseible for performing calculations on the
+# The QueryDepartures service is responseible for performing calculations on the
 # data
 sudo service query_service start
 

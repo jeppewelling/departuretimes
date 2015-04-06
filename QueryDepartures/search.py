@@ -27,7 +27,7 @@ EARTH_RADIUS_KM = 6371.01
 # Returns the coordinates of the square surrounding the circle defined
 # by the point (lat, lon), distance, where distance is the radius of
 # the circle.
-def lon_span(lat, lon, distance):
+def lat_lon_span(lat, lon, distance):
     radius = EARTH_RADIUS_KM
     if radius < 0 or distance < 0:
         return None
@@ -88,7 +88,7 @@ def add_distance_to_point(p, lat, lon):
 
 # Find the points within the square of the source point.
 def approximate_search(points, lat, lon, distance):
-    span = lon_span(lat, lon, distance)
+    span = lat_lon_span(lat, lon, distance)
 
     if span is None:
         return None

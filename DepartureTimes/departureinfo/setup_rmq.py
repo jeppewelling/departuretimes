@@ -4,7 +4,7 @@ from communication.health_client_rmq import HealthClient
 from communication.queues import query_queue_name
 
 
-# Sends a query to the Query sevice
+# Sends a query to the QueryDepartures sevice
 # returns an answer as JSON represented as a dict
 
 def find_departures(lat, lon, radius):

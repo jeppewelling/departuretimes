@@ -2,9 +2,8 @@ DepartureTime Take Two
 
 Description
 
-This implementation of DepartureTime is a JSON based web service where
-one can request departure times from DSB based on a geo-location and a
-radius in km.
+This implementation of DepartureTime is a JSON based web service providing departure times from DSBs web feed.
+Departures can be requested by geo-location and radius.
 
 The application has a thin Web client that automatically invokes a search
 based on the users current location.
@@ -17,19 +16,15 @@ directly from the browser using three inputs:
 
 Requesting all departures from Aarhus within a radius of 10 km would be:
 
-http://89.221.166.70/location=56.1500,10.2167,10
+http://89.221.166.70/location/56.1500,10.2167,10
 
 
-Deployment
 - Installing
 
-
-
- - By default the install script will place the departuretime app in: /srv/departuretimes
-
-      You might want to change the settings in the wsgi configuration file for
-      apache2: install/departuretimes.dk.conf to match an alternative path where the
-      project has been checked out and the domain / IP.
+   The install script will place the departuretime app in: /srv/departuretimes
+   The default domain name is set to be departuretimes.dk, thus make a mapping in the hosts file from 127.0.0.1 to
+   departuretimes.dk and it should be possible to access the webservice locally.
+   Alternatively change the wsgi settings file located in /etc/apache2/sites-available/departuretimes.dk.conf
 
   - To install and setup the DepartureTime project, download the install.sh file and run:
 
@@ -39,14 +34,14 @@ Deployment
 
 - Run
 
-  - After running the install script, the service is available at localhost port 80.
+  - After running the install script, the service is available at departuretimes.dk (localhost) port 80.
   - The install script starts up the 5 services composing the application
         - Rabbit-server
         - storage_service
         - data_service
         - query_service
         - health_service
-   All of these services can be properly stopped, restarted and started by using the service command e.g.:
+   All of these services can be stopped, restarted and started by using the service command e.g.:
    $ sudo service data_service start
 
    For development purpose each service can be started up manually by invoking the run scripts in the project root:
@@ -70,8 +65,8 @@ the following technologies:
  - Git
  - Backbone, jQuery, javascript
 
- I have previously worked for about 4 months with Python and Django,
- so I am no expert - and I encounter a few problems on the way - but I
+ I have previously worked with Python and Django for about 4 months,
+ so I am no expert - and I did encounter a few problems on the way - but I
  got it working eventually.
 
  At some point I spend a few weeks playing around with RabbitMQ and I
@@ -90,10 +85,16 @@ Technical choices and architecture
   The services depicted in the diagram are glued together with RabbitMQ.
   I decided to have the components coupled together as loosely as possible
   such that each component can be switched off without directly affecting
-  the others.  The web service will block until it receives a response
-  from the Query service. Making a search from Aarhus with a radius of 5 km
-  takes about 1 - 3 ms in the current setup.
-  
+  the others.
+  The Query service is continuously updated with the latest state from the
+  storage by subscribing to the storage's publish queue.  There could be any
+  number of active query services to facilitate searching. Load balancing
+  across the query services is handled by Rabbit MQ in a round robin fashion.
+  The web service will block until it receives a response from the Query service.
+  The typical response time for a search from Aarhus H with a radius of 5 km is
+  between 30 and 50 ms, where the majority of the time is network overhead from Apache2.
+  Making the same search outside of Apache context takes about 5 ms (interesting).
+
 
  - Trade-offs
    
@@ -105,10 +106,8 @@ Technical choices and architecture
 
 
  - Left out 
-
-   - Persisting data, 
+   - Persisting data,
    - proper automated testing,
-   - fully automated deployment,
 
 
  - What could be done differently

@@ -23,7 +23,7 @@ $(document).ready(function() {
     });
 
     var PlaceList = Backbone.Collection.extend({
-        url: "/places",
+        url: "/static/departureinfo/places.json",
         model: Place,
         comparator: 'Place'
     });
@@ -32,7 +32,7 @@ $(document).ready(function() {
         tagName: "select",
 
         append: function(place) {
-            var location = place.get('Location').Location
+            var location = place.get('Location')
             var lat = location.Lat
             var lon = location.Lon
             key = lat +","+lon

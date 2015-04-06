@@ -7,8 +7,9 @@
 import sys
 import uuid
 import pika
+import time
 
-
+TIMEOUT_SECONDS = 30
 
 class RpcClient(object):
     def __init__(self, queue_name):
@@ -46,14 +47,12 @@ class RpcClient(object):
         self.connection.close()
 
 
-
 # A rpc client for an existing channel
 class RpcChannelClient(object):
     def __init__(self, connection, channel, queue_name):
         self.connection = connection
         self.channel = channel
         self.queue_name = queue_name
-        # Define a callback queue (not named)
 
         result = channel.queue_declare(exclusive=True)
         self.callback_queue = result.method.queue
@@ -65,7 +64,6 @@ class RpcChannelClient(object):
             self.response = body
 
     def call(self, message):
-        #ensure_data_events_are_processed(self.channel)
         self.response = None
         self.corr_id = str(uuid.uuid4())
         self.channel.basic_publish(exchange='',
@@ -74,13 +72,17 @@ class RpcChannelClient(object):
                                          reply_to=self.callback_queue,
                                          correlation_id=self.corr_id),
                                    body=message)
-        print "RPC Begin"
+
+        start_time = time.time()
         while self.response is None:
             try:
+                current_time = time.time()
+                if (current_time - start_time) > TIMEOUT_SECONDS:
+                    return ""
+
                 sys.stdout.write('.')
                 self.connection.process_data_events()
             # If we lose the connection to the end point just skip
             except Exception as ex:
-                return "Exception: %s" % ex
-        print "RPC Finish"
+                return ""
         return self.response

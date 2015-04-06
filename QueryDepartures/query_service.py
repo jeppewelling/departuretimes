@@ -3,7 +3,7 @@ import json
 from DepartureTimes.communication.health_client_rmq import HealthClient
 from DepartureTimes.communication.queues import query_queue_name
 from DepartureTimes.communication.rpc_client import RpcClient
-from Query.setup_rmq import RmqSetup
+from QueryDepartures.setup_rmq import RmqSetup
 from search import search
 
 
@@ -37,11 +37,11 @@ def setup():
 
 
     # On startup read all stations and departures from the storage.
-    print " [Query] Fetching initial state from storage..."
+    print " [QueryDepartures] Fetching initial state from storage..."
     rmq.fetch_stations_from_storage()
     rmq.fetch_all_departures_from_storage()
 
-    print " [Query] Initial state fetched. Ready for queries."
+    print " [QueryDepartures] Initial state fetched. Ready for queries."
     # start listening on the messages published by the storage
     rmq.start_listening()
 
