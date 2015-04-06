@@ -9,7 +9,7 @@ from Data import rmq_send
 from Data.dsb_parse import parse_departure_list
 from json_url_import import import_json
 from DepartureTimes.communication.interrupt_handler \
-    import block_signals
+    import block_signals, exception_handler
 from google_georesolver import GoogleGeoResolver, as_location_not_found
 
 
@@ -23,8 +23,8 @@ dsb_stations_url = dsb_url + "/Station()?$format=json"
 
 
 def main():
-    #exception_handler(import_all)
-    import_all()
+    exception_handler(import_all)
+    #import_all()
 
 
 def import_all():

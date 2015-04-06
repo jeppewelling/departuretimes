@@ -2,6 +2,7 @@
 
 # Start consuming on the health queue.
 import json
+from DepartureTimes.communication.interrupt_handler import exception_handler
 
 from DepartureTimes.communication.queues import health_queue_name
 from DepartureTimes.communication.read_from_queue import RmqReader
@@ -17,15 +18,15 @@ searchTimeLogFile = HEALTH_LOG
 statistics = None
 
 def main():
-
-    #exception_handler(start_health_service)
-    start_health_service()
+    exception_handler(start_health_service)
+    #start_health_service()
 
 def start_health_service():
     global statistics
 
+    # Set low for demonstration purposes
     mean_length = 4
-    #baseline = baseline_average_search_time_ms(mean_length) * 2
+
     # The expected time for a search request to enter the query queue in the apache application
     # and until it has been processed and returned (in ms):
     baseline = 50

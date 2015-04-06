@@ -1,6 +1,7 @@
 import json
 
 from DepartureTimes.communication.health_client_rmq import HealthClient
+from DepartureTimes.communication.interrupt_handler import exception_handler
 from DepartureTimes.communication.queues import query_queue_name
 from DepartureTimes.communication.rpc_client import RpcClient
 from QueryDepartures.setup_rmq import RmqSetup
@@ -8,8 +9,8 @@ from search import search
 
 
 def main():
-    # exception_handler(setup)
-    setup()
+    exception_handler(setup)
+    #setup()
 
 
 # The public entry to searching

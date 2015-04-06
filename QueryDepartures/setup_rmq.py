@@ -68,6 +68,6 @@ class RmqSetup(object):
 
 
     def start_listening(self):
-        with rpc_exception_handler():
-            self.channel.start_consuming()
+        #with rpc_exception_handler():
+        self.channel.start_consuming()
 
