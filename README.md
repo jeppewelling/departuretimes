@@ -29,12 +29,14 @@ http://89.221.166.70/location/56.1500,10.2167,10
   - To install and setup the DepartureTime project, execute the two commands:
 
   $ wget https://raw.githubusercontent.com/jeppewelling/departuretimes/master/install.sh
+
   $ sudo bash install.sh
 
 
 - Run
 
-  - After running the install script, the service is available at departuretimes.dk (localhost) port 80.
+  - After running the install script, the service is available at departuretimes.dk
+    (add a mapping in your hosts file: 127.0.0.1 --> departuretimes.dk).
   - The install script starts up the 5 services composing the application
         - Rabbit-server
         - storage_service
@@ -91,7 +93,7 @@ Technical choices and architecture
         should be spawned to help consume search requests.
 
   - The Query service
-        is responseible for carrying out the actual searches in the data received from the store.
+        is responsible for carrying out the actual searches in the data received from the store.
 
   - The Data store service
         is responsible for keeping track of all incoming data from the data providers.
@@ -130,10 +132,10 @@ Technical choices and architecture
    - proper automated testing,
    - Administration module for monitoring the system,
    - Logging of exceptions,
-   - Logging of system relevant informations - i.e. did some service break down?
-   - No plan B for messaging, if RabbitMQ breakes down all fails,
+   - Logging of system relevant information - i.e. did some service break down?
+   - No plan B for messaging, if RabbitMQ breaks down all fails,
    - No load balancing for the web application,
-   - Additional traffic feeds (Rejsepnanen's feed),
+   - Additional traffic feeds (Rejseplanen's feed),
 
  - What could be done differently
     Internally I represent data purely as dictionaries which has a close resemblance with the JSON format,
