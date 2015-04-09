@@ -99,6 +99,7 @@ class Statistics(object):
         lower = self.regression_lower - n * self.mean_x * self.mean_x
 
         if self.regression_lower == 0: return 0, 0
+        if lower == 0: return 0, 0
 
         a = upper / lower
         b = self.mean_y - a * self.mean_x
