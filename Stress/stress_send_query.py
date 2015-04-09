@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from Health.data import now_ms
 
-from Query.query_service import find_departures, find_departures_no_health_logging
+from QueryDepartures.query_service import find_departures, find_departures_no_health_logging
 
 
 def baseline_average_search_time_ms(iterations):

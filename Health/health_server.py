@@ -8,7 +8,6 @@ from DepartureTimes.communication.queues import health_queue_name
 from DepartureTimes.communication.read_from_queue import RmqReader
 from Health.data import T, M, TS, V
 from Health.statistics import Statistics
-from Stress.stress_send_query import baseline_average_search_time_ms
 from config import HEALTH_LOG
 
 
